@@ -21,25 +21,40 @@ const columns: TableColumnsType<Item> = [
     title: 'Description',
     dataIndex: 'description',
     key: 'description',
+    align: 'center',
   },
   {
     title: 'Quantity',
     dataIndex: 'quantity',
     key: 'quantity',
-    align: 'right',
+    align: 'center',
   },
   {
     title: 'Rate',
     dataIndex: 'rate',
     key: 'rate',
-    align: 'right',
+    align: 'center',
     render: (rate) => `${rate.toFixed(2)}`,
+  },
+  {
+    title: 'Service Chr.',
+    dataIndex: 'serviceCharge',
+    key: 'serviceCharge',
+    align: 'center',
+    // render: (rate) => `${rate.toFixed(2)}`,
+  },
+  {
+    title: 'Tax.',
+    dataIndex: 'tax',
+    key: 'tax',
+    align: 'center',
+    // render: (rate) => `${rate.toFixed(2)}`,
   },
   {
     title: 'Total',
     dataIndex: 'total',
     key: 'total',
-    align: 'right',
+    align: 'center',
     render: (total) => `${total.toFixed(2)}`,
   },
 ];
@@ -48,26 +63,26 @@ const InvoiceDetail = () => {
   const [items, setItems] = useState<Item[]>([]);
 
   const { id } = useParams<{ id: string }>();
-
   useEffect(() => {
     const getInvoice = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:8081/api/reports/items/${id}`,
+          `https://inventory-backend-azure.vercel.app/api/reports/items/${id}`,
         );
         const formattedData = response.data.data.map(
           (items: any, index: number) => {
             return {
-              id: items._id,
-              description: items.description,
+              id: index + 1,
+              description: items.description.name,
               quantity: items.quantity,
               rate: items.rate,
               total: items.total,
+              tax: items.tax,
+              serviceCharge: items.serviceCharge,
             };
           },
         );
         setItems(formattedData);
-        console.log('items', items);
       } catch (error) {
         console.error('Error fetching the invoice:', error);
       }
@@ -81,7 +96,7 @@ const InvoiceDetail = () => {
     sorter,
     extra,
   ) => {
-    console.log('params', pagination, filters, sorter, extra);
+    // console.log('params', pagination, filters, sorter, extra);
   };
 
   return (

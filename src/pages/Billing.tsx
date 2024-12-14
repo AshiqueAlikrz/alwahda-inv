@@ -26,22 +26,11 @@ const getActiveColors = (colors: any) =>
 
 const Billing = () => {
   const navigate = useNavigate();
-  const { billingData, setBillingData } = useContext(billingDataContext);
+  const { billingData, setBillingData, invoice, setInvoice } =
+    useContext(billingDataContext);
 
   const [allServices, setAllServices] = useState(null);
   const [open, setOpen] = useState(false);
-  const [rows, setRows] = useState([
-    {
-      id: 0,
-      description: '',
-      quantity: 0,
-      fee: 0,
-      serviceCharge: 0,
-      tax: 1,
-      total: 0,
-    },
-  ]);
-  const [inputFields, setInputFields] = useState(false);
 
   const showModal = () => {
     setOpen(true);
@@ -57,7 +46,7 @@ const Billing = () => {
 
   const addRow = (index: any) => {
     const newRow = {
-      id: index + 1,
+      id: index != Number ? 1 : index + 1,
       description: '',
       quantity: '',
       fee: '',
@@ -90,9 +79,9 @@ const Billing = () => {
           rate: Yup.number()
             .required('Rate is required')
             .min(1, 'Rate must be at least 1'),
-          serviceCharge: Yup.number()
-            .required('service charge is required')
-            .min(1, 'charge must be at least 1'),
+          // serviceCharge: Yup.number()
+          //   .required('service charge is required')
+          //   .min(1, 'charge must be at least 1'),
         }),
       )
       .required('At least one item is required'),
@@ -107,36 +96,45 @@ const Billing = () => {
     validationSchema,
     onSubmit: async (values) => {
       try {
-        // Set billing data state
-        setBillingData(values);
-        // console.log('billingData', billingData);
-        // Call the API to create the invoice
-        const response = await axios.post(
-          'http://localhost:8081/api/reports/createInvoice',
-          values,
-        );
-        if (response.status === 201) {
-          //   formik.resetForm();
-          alert('Invoice created successfully!');
-          <Alert
-            message="Error Text"
-            description="Error Description Error Description Error Description Error Description Error Description Error Description"
-            type="error"
-            closable={{
-              'aria-label': 'close',
-              closeIcon: <CloseSquareFilled />,
-            }}
-            onClose={onClose}
-          />;
-
-          navigate('/invoice/1');
+        if (values?.items?.length === 0) {
+          alert('Add atlease 1 item');
         } else {
-          console.error('Error creating invoice');
-          // Handle the error as needed (e.g., show a toast notification)
+          setBillingData(values);
+          const response = await axios.post(
+            'https://inventory-backend-azure.vercel.app/api/reports/createInvoice',
+            values,
+          );
+          if (response.status === 201) {
+            formik.resetForm({
+              values: {
+                name: '',
+                date: '',
+                invoice_number: '',
+                items: [],
+                sub_total: 0,
+                grand_total: 0,
+                discount: 0,
+                paid: false,
+              },
+            });
+            alert('Invoice created successfully!');
+            <Alert
+              message="Error Text"
+              description="Error Description Error Description Error Description Error Description Error Description Error Description"
+              type="error"
+              closable={{
+                'aria-label': 'close',
+                closeIcon: <CloseSquareFilled />,
+              }}
+              onClose={onClose}
+            />;
+            navigate(`/invoice/${response.data.data._id}`);
+          } else {
+            console.error('Error creating invoice');
+          }
         }
       } catch (error) {
         console.error('Error:', error);
-        // Handle the error as needed (e.g., show a toast notification)
       }
     },
   });
@@ -166,7 +164,18 @@ const Billing = () => {
   }, [formik.values.items, formik.values]);
 
   const handleReset = () => {
-    formik.resetForm();
+    formik.resetForm({
+      values: {
+        name: '',
+        date: '',
+        invoice_number: '',
+        items: [],
+        sub_total: 0,
+        grand_total: 0,
+        discount: 0,
+        paid: false,
+      },
+    });
   };
 
   const handleKeyDown = (event: any) => {
@@ -185,8 +194,9 @@ const Billing = () => {
     const getService = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:8081/api/reports/getService',
+          'https://inventory-backend-azure.vercel.app/api/reports/getService',
         );
+
         setAllServices(response.data.data);
       } catch (error) {
         console.error('Error fetching the invoice:', error);
@@ -194,8 +204,6 @@ const Billing = () => {
     };
     getService();
   }, []);
-
-  console.log('formik', formik.values);
 
   return (
     <>

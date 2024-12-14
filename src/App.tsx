@@ -119,7 +119,7 @@ function App() {
             }
           />
           <Route
-            path="/invoice/:id"
+            path="/invoice/:invoiceId"
             element={
               <>
                 <PageTitle title="Invoice" />

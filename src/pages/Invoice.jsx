@@ -1,13 +1,17 @@
-import React, { useContext, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { billingDataContext } from '../contexts/DataContext';
 import alwahdaText from '../assets/alwahda.png';
+import moment from 'moment';
+import axios from 'axios';
+import { useParams } from 'react-router-dom';
 
 const Invoice = () => {
+  const { invoiceId } = useParams(); // Extract the invoiceId from the URL
   const { billingData } = useContext(billingDataContext);
   const invoiceRef = useRef();
-
+  const [invoice, setInvoice] = useState([]);
   const handleDownload = () => {
     const element = invoiceRef.current;
     const scale = 1.5;
@@ -38,6 +42,26 @@ const Invoice = () => {
     window.print();
   };
 
+  const formatDate = (date, format) => {
+    return moment(date).format(format);
+  };
+
+  useEffect(() => {
+    const fetchInvoiceItems = async () => {
+      try {
+        const response = await axios.get(
+          `https://inventory-backend-azure.vercel.app/api/reports/invoice/${invoiceId}`,
+        );
+        setInvoice(response.data.data);
+      } catch (error) {
+        console.error('Error fetching invoice items:', error);
+      }
+    };
+    if (invoiceId) {
+      fetchInvoiceItems();
+    }
+  }, [invoiceId]);
+
   return (
     <div className="m-8">
       <style>
@@ -62,15 +86,24 @@ const Invoice = () => {
               Invoice
             </h2>
             <p className="text-left font-medium">
-              Invoice No: {billingData.invoice}
+              Invoice No:{' '}
+              <span className="text-black">{invoice.invoice_number}</span>
             </p>
-            <p className="text-left font-medium">Date : {billingData?.date}</p>
+            <p className="text-left font-medium">
+              Date :{' '}
+              <span className="text-black">{`${formatDate(
+                invoice?.date,
+                'DD-MM-YYYY',
+              )}`}</span>
+            </p>
           </div>
           <div className="flex flex-col items-end w-4/6 h-20 ">
             <h3 className="text-gray-600 text-lg font-semibold mr-5 ">
               Bill To:
             </h3>
-            <p className=" font-medium text-auto ">{billingData?.name}</p>
+            <p className=" font-medium text-lg text-auto text-black">
+              {invoice?.name}
+            </p>
             {/* <p className="text-gray-600 ">Bur Dubai</p> */}
           </div>
         </div>
@@ -88,22 +121,22 @@ const Invoice = () => {
             </tr>
           </thead>
           <tbody>
-            {billingData?.items?.map((item, index) => (
+            {invoice?.items?.map((item, index) => (
               <tr key={index}>
-                <td className="py-2 px-4 border border-gray-200">
+                <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
                   {index + 1}
                 </td>
-                <td className="py-2 px-4 border border-gray-200">
-                  {item.description}
+                <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+                  {item.description.name}
                 </td>
-                <td className="py-2 px-4 border border-gray-200">
+                <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
                   {item.quantity}
                 </td>
-                <td className="py-2 px-4 border border-gray-200">
+                <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
                   {item?.rate?.toFixed(2)}
                 </td>
-                <td className="py-2 px-4 border border-gray-200">
-                  {(item.rate * item.quantity).toFixed(2)}
+                <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+                  {item?.total?.toFixed(2)}
                 </td>
               </tr>
             ))}
@@ -123,7 +156,7 @@ const Invoice = () => {
             </tr>
           </tbody>
           <tfoot>
-            {billingData?.discount > 0 && (
+            {invoice?.discount > 0 && (
               <tr>
                 <td
                   colSpan="4"
@@ -131,12 +164,12 @@ const Invoice = () => {
                 >
                   Sub total
                 </td>
-                <td className="py-2 px-4 font-semibold border border-gray-200">
-                  AED {billingData?.subTotal?.toFixed(2)}{' '}
+                <td className="py-2 text-black px-4 font-semibold border border-gray-200">
+                  AED {invoice?.sub_total?.toFixed(2)}{' '}
                 </td>
               </tr>
             )}
-            {billingData?.discount > 0 && (
+            {invoice?.discount > 0 && (
               <tr>
                 <td
                   colSpan="4"
@@ -144,8 +177,8 @@ const Invoice = () => {
                 >
                   Discount
                 </td>
-                <td className="py-2 px-4 font-semibold border border-gray-200">
-                  AED {billingData?.discount?.toFixed(2)}{' '}
+                <td className="py-2 px-4 text-black font-semibold border border-gray-200">
+                  AED {invoice?.discount?.toFixed(2)}{' '}
                 </td>
               </tr>
             )}
@@ -156,8 +189,8 @@ const Invoice = () => {
               >
                 Total
               </td>
-              <td className="py-2 px-4 font-bold border border-gray-200">
-                AED {billingData?.grandTotal?.toFixed(2)}{' '}
+              <td className="py-2 text-black px-4 font-bold border border-gray-200">
+                AED {invoice?.grand_total?.toFixed(2)}{' '}
               </td>
             </tr>
           </tfoot>

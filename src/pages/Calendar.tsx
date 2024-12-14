@@ -64,7 +64,7 @@ const onChange: TableProps<DataType>['onChange'] = (
   sorter,
   extra,
 ) => {
-  console.log('params', pagination, filters, sorter, extra);
+  // console.log('params', pagination, filters, sorter, extra);
 };
 
 const Calendar = () => {
@@ -76,9 +76,10 @@ const Calendar = () => {
     const getInvoice = async () => {
       try {
         const response = await axios.get(
-          'http://localhost:8081/api/reports/getInvoice',
+          'https://inventory-backend-azure.vercel.app/api/reports/getInvoice',
         );
         // Flatten data for the table
+
         const formattedData = response.data.data.map(
           (invoice: any, index: number) => {
             return {
@@ -90,7 +91,9 @@ const Calendar = () => {
               sub_total: invoice.sub_total,
               grand_total: invoice.grand_total,
               discount: invoice.discount,
-              paid: invoice.paid,
+              paid: invoice?.paid,
+              // tax: invoice?.items[0].tax,
+              // serviceCharge: invoice?.items[0].serviceCharge,
               // ...invoice.items[1], // Use the first item for simplicity
               // item_id: invoice.items[0]?.id,
               // item_description: invoice.items[0]?.description,
@@ -100,7 +103,7 @@ const Calendar = () => {
             };
           },
         );
-        // console.log('formattedData', formattedData);
+        console.log('formattedData', formattedData);
 
         setInvoice(formattedData);
       } catch (error) {
