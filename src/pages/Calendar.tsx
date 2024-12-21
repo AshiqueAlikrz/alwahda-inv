@@ -1,10 +1,12 @@
 import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react';
-import { Table } from 'antd';
+import { Button, Dropdown, Menu, Popconfirm, Table } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { billingDataContext } from '../contexts/DataContext';
+import { IoMdMore } from 'react-icons/io';
+import { QuestionCircleOutlined } from '@ant-design/icons';
 
 interface Item {
   id: number;
@@ -25,6 +27,37 @@ export interface DataType {
   paid: boolean;
   id: string;
 }
+const handleMenuClick = (e: any) => {
+  console.log('eee', e);
+  // Handle your edit or delete action here
+};
+const handleDelete = async () => {
+  await axios.delete('http://localhost:8081/api/reports/invoice/:invoiceId');
+  console.log('Task deleted'); // Handle the delete action here
+};
+
+const menu = (
+  <Menu
+    onClick={(e) => {
+      e.domEvent.stopPropagation();
+      handleMenuClick(e); // Call the function properly
+    }}
+  >
+    <Menu.Item key="edit">Edit</Menu.Item>
+    <Menu.Item key="delete">
+      {' '}
+      <Popconfirm
+        title="Delete the task"
+        description="Are you sure to delete this task?"
+        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+        onConfirm={handleDelete}
+        // onCancel={handleCancel}
+      >
+        Delete
+      </Popconfirm>{' '}
+    </Menu.Item>
+  </Menu>
+);
 
 const columns: TableColumnsType<DataType> = [
   {
@@ -55,6 +88,15 @@ const columns: TableColumnsType<DataType> = [
     title: 'Paid',
     dataIndex: 'paid',
     render: (paid) => (paid ? 'Yes' : 'No'), // Renders as "Yes" or "No"
+  },
+  {
+    title: '',
+    dataIndex: 'edit',
+    render: (_, record) => (
+      <Dropdown overlay={menu} trigger={['click']}>
+        <Button icon={<IoMdMore />} onClick={(e) => e.stopPropagation()} />
+      </Dropdown>
+    ),
   },
 ];
 
@@ -92,6 +134,7 @@ const Calendar = () => {
               grand_total: invoice.grand_total,
               discount: invoice.discount,
               paid: invoice?.paid,
+              edit: <IoMdMore />,
               // tax: invoice?.items[0].tax,
               // serviceCharge: invoice?.items[0].serviceCharge,
               // ...invoice.items[1], // Use the first item for simplicity
@@ -103,7 +146,6 @@ const Calendar = () => {
             };
           },
         );
-        console.log('formattedData', formattedData);
 
         setInvoice(formattedData);
       } catch (error) {
@@ -114,16 +156,18 @@ const Calendar = () => {
   }, []);
 
   return (
-    <Table<DataType>
-      columns={columns}
-      dataSource={invoice}
-      onChange={onChange}
-      onRow={(record) => ({
-        onClick: () => {
-          navigate(`/report/${record.id}`);
-        },
-      })}
-    />
+    <>
+      <Table<DataType>
+        columns={columns}
+        dataSource={invoice}
+        onChange={onChange}
+        onRow={(record) => ({
+          onClick: () => {
+            navigate(`/report/${record.id}`);
+          },
+        })}
+      />
+    </>
   );
 };
 

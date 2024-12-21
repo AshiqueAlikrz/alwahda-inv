@@ -7,12 +7,9 @@ import { TiPlus } from 'react-icons/ti';
 import { useNavigate } from 'react-router-dom';
 import { billingDataContext } from '../contexts/DataContext';
 import { IoMdPrint } from 'react-icons/io';
-import { ourServices } from '../data/Solutions';
-import { notification } from 'antd';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 import { Formik, Form, Field, ErrorMessage, useFormik } from 'formik';
-import FormItem from 'antd/es/form/FormItem';
 import axios from 'axios';
 import { Alert } from 'antd';
 import { CloseSquareFilled } from '@ant-design/icons';
@@ -117,7 +114,7 @@ const Billing = () => {
                 paid: false,
               },
             });
-            alert('Invoice created successfully!');
+            toast.success('Invoice created successfully!');
             <Alert
               message="Error Text"
               description="Error Description Error Description Error Description Error Description Error Description Error Description"
@@ -130,11 +127,11 @@ const Billing = () => {
             />;
             navigate(`/invoice/${response.data.data._id}`);
           } else {
-            console.error('Error creating invoice');
+            toast.error('Error creating invoice');
           }
         }
-      } catch (error) {
-        console.error('Error:', error);
+      } catch (error: any) {
+        toast.error('Error:', error);
       }
     },
   });
@@ -198,8 +195,8 @@ const Billing = () => {
         );
 
         setAllServices(response.data.data);
-      } catch (error) {
-        console.error('Error fetching the invoice:', error);
+      } catch (error: any) {
+        toast.error('Error fetching the invoice:', error);
       }
     };
     getService();
