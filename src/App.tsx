@@ -95,7 +95,7 @@ function App() {
         />
 
         <Route
-          path="/dashboard"
+          path="/"
           element={
             <>
               <PageTitle title="AL WAHDA INVENTORY" />
