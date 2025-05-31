@@ -6,30 +6,49 @@ import ChartTwo from '../../components/Charts/ChartTwo';
 import ChatCard from '../../components/Chat/ChatCard';
 import MapOne from '../../components/Maps/MapOne';
 import TableOne from '../../components/Tables/TableOne';
+import {
+  useGetDashboardReportQuery,
+  useUpdateItemMutation,
+} from '../../store/reportSlice';
+import { toast } from 'react-toastify';
 
 const ECommerce: React.FC = () => {
+  const { data, error, isLoading } = useGetDashboardReportQuery();
+
   const stats = [
     {
-      title: 'Today Expense',
-      total: '$3.456K',
+      title: 'Total Expense',
+      total:
+        !isLoading && data?.data?.todayReport.length
+          ? data?.data?.todayReport[0].expense
+          : 0,
       rate: '0.43%',
     },
     {
-      title: 'Today Profit',
-      total: '$8.120K',
+      title: 'Total Profit',
+      total:
+        !isLoading && data?.data?.todayReport.length
+          ? data?.data?.todayReport[0].profit
+          : 0,
       rate: '1.20%',
     },
     {
       title: 'Total Users',
-      total: '1,240',
+      total: data?.data?.totalUsers || 0,
       rate: '2.75%',
     },
-    {
-      title: 'Page visits',
-      total: '12.3K',
-      rate: '0.89%',
-    },
+    // {
+    //   title: 'Page visits',
+    //   total: '12.3K',
+    //   rate: '0.89%',
+    // },
   ];
+
+  if (error) {
+    toast.error('Error');
+  }
+
+  console.log(data);
 
   return (
     <>
@@ -62,16 +81,16 @@ const ECommerce: React.FC = () => {
         ))}
       </div>
 
-      <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
+      {/* <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
         <ChartOne />
         <ChartTwo />
-        <ChartThree />
+        <ChartThree />  
         <MapOne />
         <div className="col-span-12 xl:col-span-8">
           <TableOne />
         </div>
         <ChatCard />
-      </div>
+      </div> */}
     </>
   );
 };

@@ -56,7 +56,7 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: environment.VITE_DOMAIN_URL,
   }),
-  tagTypes: ['Invoices'],
+  tagTypes: ['Invoices', 'Service'],
   endpoints: (builder) => ({
     getUsers: builder.query<any, void>({
       query: () => '/reports/getInvoice',
@@ -77,6 +77,14 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Invoices'],
     }),
+    createService: builder.mutation<any, Omit<any, 'id'>>({
+      query: (body) => ({
+        url: '/reports/createService',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Service'],
+    }),
     getDailyReports: builder.query<any, void>({
       query: () => `/reports/dailyreports`,
       providesTags: ['Invoices'],
@@ -84,6 +92,28 @@ export const apiSlice = createApi({
     getMonthlyReports: builder.query<any, void>({
       query: () => `/reports/monthlyreports`,
       providesTags: ['Invoices'],
+    }),
+    getAllservices: builder.query<any, void>({
+      query: () => `/reports/getService`,
+      providesTags: ['Service'],
+    }),
+    getDashboardReport: builder.query<any, void>({
+      query: () => `/reports/dashboardreports`,
+    }),
+    getAllService: builder.query<any, void>({
+      query: () => `/reports/getService`,
+      providesTags: ['Service'],
+    }),
+    updateItem: builder.mutation<
+      any,
+      { id: string; editId: string; body: any }
+    >({
+      query: ({ id, editId, body }) => ({
+        url: `/reports/editinvoice/${id}/item/${editId}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['Invoices'],
     }),
   }),
 });
@@ -95,6 +125,11 @@ export const {
   useCreateInvoiceMutation,
   useGetDailyReportsQuery,
   useGetMonthlyReportsQuery,
+  useGetAllservicesQuery,
+  useUpdateItemMutation,
+  useGetDashboardReportQuery,
+  useGetAllServiceQuery,
+  useCreateServiceMutation,
 } = apiSlice;
 
 // export const { setReportData } = todosSlice.actions;

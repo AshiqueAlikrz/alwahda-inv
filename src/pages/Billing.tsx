@@ -13,7 +13,11 @@ import { Formik, Form, Field, ErrorMessage, useFormik } from 'formik';
 import axios from 'axios';
 import { Alert } from 'antd';
 import { CloseSquareFilled } from '@ant-design/icons';
-import { useCreateInvoiceMutation } from '../store/reportSlice';
+import {
+  useCreateInvoiceMutation,
+  useGetAllservicesQuery,
+} from '../store/reportSlice';
+import Loading from '../components/Loading';
 
 const colors1 = ['#fc6076', '#FF0000'];
 const colors2 = ['#A4FF6B', '#008000'];
@@ -39,6 +43,7 @@ const Billing = () => {
         serviceCharge: 0,
         tax: 0,
         total: 0,
+        vat: false,
       },
     ],
     sub_total: 0,
@@ -50,7 +55,6 @@ const Billing = () => {
   // const { billingData, setBillingData, invoice, setInvoice } =
   //   useContext(billingDataContext);
 
-  const [allServices, setAllServices] = useState(null);
   const [open, setOpen] = useState(false);
 
   const showModal = () => {
@@ -180,6 +184,10 @@ const Billing = () => {
       const tax = (item.serviceCharge / 100) * 5;
       formik.setFieldValue(`items[${index}].total`, formattedTotal);
       formik.setFieldValue(`items[${index}].tax`, tax);
+
+      const isVatApplied = item.serviceCharge > 0;
+      console.log('isVatApplied', isVatApplied);
+      formik.setFieldValue(`items[${index}].vat`, isVatApplied);
     });
   }, [formik.values.items, formik.setFieldValue]);
 
@@ -222,22 +230,29 @@ const Billing = () => {
     formik.setFieldValue('grand_total', grandTotal);
   }, [subTotal, grandTotal]);
 
-  useEffect(() => {
-    const getService = async () => {
-      try {
-        const response = await axios.get(
-          `${environment.VITE_DOMAIN_URL}/reports/getService`,
-        );
+  const { data, error, isLoading } = useGetAllservicesQuery();
+  // setAllServices(data?.data);
+  // console.log(data?.data);
+  // if (!isLoading) {
+  //   if (data) setAllServices(data?.data);
+  // } else {
+  //   toast.error('Error fetching the invoice:', error);
+  // }
 
-        setAllServices(response.data.data);
-      } catch (error: any) {
-        toast.error('Error fetching the invoice:', error);
-      }
-    };
-    getService();
-  }, []);
+  // console.log('data.data', data);
 
-  console.log('render');
+  // useEffect(() => {
+  //   const getService = async () => {
+  //     try {
+  //       const response = await axios.get(
+  //         `${environment.VITE_DOMAIN_URL}/reports/getService`,
+  //       );
+
+  //       setAllServices(response.data.data);
+  //     } catch (error: any) {}
+  //   };
+  //   getService();
+  // }, []);
 
   return (
     <>
@@ -437,7 +452,7 @@ const Billing = () => {
                           }
                           name={`items[${index}].description`}
                           onChange={(value) => {
-                            const selectedService = allServices?.find(
+                            const selectedService = data?.data?.find(
                               (item: any) => item._id === value,
                             );
                             formik.setFieldValue(
@@ -450,11 +465,17 @@ const Billing = () => {
                             );
                           }}
                         >
-                          {allServices?.map((item: any) => (
+                          {false ? (
                             <Select.Option key={item.id} value={item._id}>
-                              {item.name}
+                              <Loading />
                             </Select.Option>
-                          ))}
+                          ) : (
+                            data?.data?.map((item: any) => (
+                              <Select.Option key={item.id} value={item._id}>
+                                {item.name}
+                              </Select.Option>
+                            ))
+                          )}
                         </Select>
                         {formik.errors.items &&
                           formik.touched.items &&

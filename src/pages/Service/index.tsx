@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react';
-import { Button, Dropdown, Menu, Popconfirm, Table } from 'antd';
+import { Button, Dropdown, Input, Menu, Modal, Popconfirm, Table } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
@@ -10,10 +10,13 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 import useReportApi from '../../api/report';
 import { useSelector } from 'react-redux';
 import {
+  useCreateServiceMutation,
+  useGetAllServiceQuery,
   useGetUsersByIdQuery,
   useGetUsersQuery,
 } from '../../store/reportSlice';
 import ButtonCard from '../../components/buttonCard';
+import { toast } from 'react-toastify';
 
 interface Item {
   id: number;
@@ -67,35 +70,35 @@ const menu = (
 );
 
 const columns: TableColumnsType<DataType> = [
-  {
-    title: 'Invoice Number',
-    dataIndex: 'invoice_number',
-  },
-  {
-    title: 'Date',
-    dataIndex: 'date',
-  },
+  //   {
+  //     title: 'Invoice Number',
+  //     dataIndex: 'invoice_number',
+  //   },
+  //   {
+  //     title: 'Date',
+  //     dataIndex: 'date',
+  //   },
   {
     title: 'Name',
     dataIndex: 'name',
   },
   {
-    title: 'Sub Total',
-    dataIndex: 'sub_total',
+    title: 'Price',
+    dataIndex: 'price',
   },
-  {
-    title: 'Discount',
-    dataIndex: 'discount',
-  },
-  {
-    title: 'Grand Total',
-    dataIndex: 'grand_total',
-  },
-  {
-    title: 'Paid',
-    dataIndex: 'paid',
-    render: (paid) => (paid ? 'Yes' : 'No'), // Renders as "Yes" or "No"
-  },
+  //   {
+  //     title: 'Discount',
+  //     dataIndex: 'discount',
+  //   },
+  //   {
+  //     title: 'Grand Total',
+  //     dataIndex: 'grand_total',
+  //   },
+  //   {
+  //     title: 'Paid',
+  //     dataIndex: 'paid',
+  //     render: (paid) => (paid ? 'Yes' : 'No'), // Renders as "Yes" or "No"
+  //   },
   // {
   //   title: '',
   //   dataIndex: 'edit',
@@ -116,12 +119,13 @@ const onChange: TableProps<DataType>['onChange'] = (
   // console.log('params', pagination, filters, sorter, extra);
 };
 
-const Calendar = () => {
+const Service = () => {
   // const allInvoices = useSelector((state: any) => state.report.reportData);
   const navigate = useNavigate();
   // const { getInvoice } = useReportApi();
 
-  const { data, error, isLoading } = useGetUsersQuery();
+  const { data, error, isLoading } = useGetAllServiceQuery();
+  const [createService] = useCreateServiceMutation();
 
   console.log('data, error, isLoading', data, error, isLoading);
 
@@ -139,15 +143,15 @@ const Calendar = () => {
     ? data?.data?.map((invoice: any, index: number) => {
         return {
           key: index,
-          id: invoice._id,
-          invoice_number: invoice.invoice_number,
-          date: moment(invoice.date).format('DD-MM-YYYY'),
+          //   id: invoice._id,
+          //   invoice_number: invoice.invoice_number,
+          //   date: moment(invoice.date).format('DD-MM-YYYY'),
           name: invoice.name,
-          sub_total: invoice.sub_total,
-          grand_total: invoice.grand_total,
-          discount: invoice.discount,
-          paid: invoice?.paid,
-          edit: <IoMdMore />,
+          price: invoice.price,
+          //   grand_total: invoice.grand_total,
+          //   discount: invoice.discount,
+          //   paid: invoice?.paid,
+          //   edit: <IoMdMore />,
           // tax: invoice?.items[0].tax,
           // serviceCharge: invoice?.items[0].serviceCharge,
           // ...invoice.items[1], // Use the first item for simplicity
@@ -160,19 +164,85 @@ const Calendar = () => {
       })
     : [];
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = async () => {
+    setIsModalOpen(false);
+    const response = await createService(serviceData).unwrap();
+    toast.success(response.message);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
+  const [serviceData, setServiceData] = useState({
+    name: '',
+    price: 0,
+  });
+
+  const onChange = (e: any) => {
+    setServiceData({
+      ...serviceData,
+      [e.target.name]:
+        e.target.name === 'name' ? e.target.value : Number(e.target.value),
+    });
+  };
+
+  console.log(serviceData);
   return (
-    <Table<DataType>
-      loading={isLoading}
-      columns={columns}
-      dataSource={formattedData}
-      onChange={onChange}
-      onRow={(record) => ({
-        onClick: () => {
-          navigate(`/report/${record.id}`);
-        },
-      })}
-    />
+    <div className="flex flex-col gap-3">
+      <div className="flex w-full justify-end">
+        <Button type="primary" onClick={showModal}>
+          Add Service
+        </Button>
+      </div>
+      <Table<DataType>
+        loading={isLoading}
+        columns={columns}
+        dataSource={formattedData}
+        onChange={onChange}
+        //   onRow={(record) => ({
+        //     onClick: () => {
+        //       navigate(`/report/${record.id}`);
+        //     },
+        //   })}
+      />
+
+      <Modal
+        title="Basic Modal"
+        closable={{ 'aria-label': 'Custom Close Button' }}
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <div className="flex gap-3 flex-col">
+          <div className="flex gap-1">
+            <label className="text-nowrap">Service Name :</label>
+            <Input
+              type="text"
+              onChange={onChange}
+              name="name"
+              placeholder="Service Name"
+            />
+          </div>
+          <div className="flex gap-1">
+            <label className="text-nowrap">Price :</label>
+            <Input
+              onChange={onChange}
+              type="number"
+              placeholder="price"
+              name="price"
+            />
+          </div>
+        </div>
+      </Modal>
+    </div>
   );
 };
 
-export default Calendar;
+export default Service;

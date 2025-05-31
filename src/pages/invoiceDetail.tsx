@@ -1,8 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Table, TableColumnsType, TableProps } from 'antd';
+import {
+  Button,
+  Dropdown,
+  Menu,
+  Popconfirm,
+  Table,
+  TableColumnsType,
+  TableProps,
+} from 'antd';
 import { useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
-import { useGetUsersByIdQuery } from '../store/reportSlice';
+import {
+  useGetUsersByIdQuery,
+  useUpdateItemMutation,
+} from '../store/reportSlice';
+import { IoMdMore } from 'react-icons/io';
+import { QuestionCircleOutlined } from '@ant-design/icons';
+import EditModal from '../components/editModal';
+import { number } from 'yup';
+import { toast } from 'react-toastify';
 
 interface Item {
   id: string;
@@ -10,63 +26,111 @@ interface Item {
   quantity: number;
   rate: number;
   total: number;
+  _id: string;
 }
 
-const columns: TableColumnsType<Item> = [
-  {
-    title: 'ID',
-    dataIndex: 'id',
-    key: 'id',
-  },
-  {
-    title: 'Description',
-    dataIndex: 'description',
-    key: 'description',
-    align: 'center',
-  },
-  {
-    title: 'Quantity',
-    dataIndex: 'quantity',
-    key: 'quantity',
-    align: 'center',
-  },
-  {
-    title: 'Rate',
-    dataIndex: 'rate',
-    key: 'rate',
-    align: 'center',
-    render: (rate) => `${rate.toFixed(2)}`,
-  },
-  {
-    title: 'Service Chr.',
-    dataIndex: 'serviceCharge',
-    key: 'serviceCharge',
-    align: 'center',
-    // render: (rate) => `${rate.toFixed(2)}`,
-  },
-  {
-    title: 'Tax.',
-    dataIndex: 'tax',
-    key: 'tax',
-    align: 'center',
-    // render: (rate) => `${rate.toFixed(2)}`,
-  },
-  {
-    title: 'Total',
-    dataIndex: 'total',
-    key: 'total',
-    align: 'center',
-    render: (total) => `${total.toFixed(2)}`,
-  },
-];
-
 const InvoiceDetail = () => {
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const menu = (
+    <Menu
+      onClick={(e) => {
+        e.domEvent.stopPropagation();
+        // handleMenuClick(e); // Call the function properly
+      }}
+    >
+      <Menu.Item
+        onClick={(e) => {
+          e.domEvent.stopPropagation();
+          setModalOpen(true); // Open the modal
+
+          // handleMenuClick(e); // Call the function properly
+        }}
+        key="edit"
+      >
+        Edit
+      </Menu.Item>
+      {/* <Menu.Item key="delete">
+      {' '}
+      <Popconfirm
+      title="Delete the task"
+        description="Are you sure to delete this task?"
+        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+        // onConfirm={handleDelete}
+        // onCancel={handleCancel}
+      >
+      Delete
+      </Popconfirm>{' '}
+      </Menu.Item> */}
+    </Menu>
+  );
+
+  const columns: TableColumnsType<Item> = [
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      align: 'center',
+    },
+    {
+      title: 'Quantity',
+      dataIndex: 'quantity',
+      key: 'quantity',
+      align: 'center',
+    },
+    {
+      title: 'Rate',
+      dataIndex: 'rate',
+      key: 'rate',
+      align: 'center',
+      render: (rate) => `${rate.toFixed(2)}`,
+    },
+    {
+      title: 'Service Chr.',
+      dataIndex: 'serviceCharge',
+      key: 'serviceCharge',
+      align: 'center',
+      // render: (rate) => `${rate.toFixed(2)}`,
+    },
+    {
+      title: 'Tax.',
+      dataIndex: 'tax',
+      key: 'tax',
+      align: 'center',
+      // render: (rate) => `${rate.toFixed(2)}`,
+    },
+    {
+      title: 'Total',
+      dataIndex: 'total',
+      key: 'total',
+      align: 'center',
+      render: (total) => `${total.toFixed(2)}`,
+    },
+    {
+      title: '',
+      dataIndex: 'edit',
+      render: (_, record) => (
+        <Dropdown overlay={menu} trigger={['click']}>
+          <Button
+            icon={<IoMdMore />}
+            onClick={function hello() {
+              (e: any) => e.stopPropagation();
+              setEditId(record._id);
+            }}
+          />
+        </Dropdown>
+      ),
+    },
+  ];
   // const [items, setItems] = useState<Item[]>([]);
 
   const { id } = useParams<{ id: string }>();
   const { data, error, isLoading } = useGetUsersByIdQuery(id);
-
-  console.log('data, error, isLoading ', data, error, isLoading);
 
   const formattedData = data
     ? data.data.map((items: any, index: number) => {
@@ -78,6 +142,7 @@ const InvoiceDetail = () => {
           total: items.total,
           tax: items.tax,
           serviceCharge: items.serviceCharge,
+          _id: items._id,
         };
       })
     : [];
@@ -109,22 +174,71 @@ const InvoiceDetail = () => {
   //   getInvoice();
   // }, []);
 
-  const onChange: TableProps<Item>['onChange'] = (
-    pagination,
-    filters,
-    sorter,
-    extra,
-  ) => {
-    // console.log('params', pagination, filters, sorter, extra);
+  const [editData, setEditData] = useState({
+    serviceCharge: 0,
+    tax: 0,
+  });
+
+  const onChange = (e) => {
+    setEditData({
+      ...editData,
+      [e.target.name]: Number(e.target.value),
+    });
+  };
+
+  const [editId, setEditId] = useState('');
+
+  console.log('editData', editData);
+
+  // const modalOpen = () => {};
+
+  // console.log('hiii');
+
+  // console.log(editId);
+  const [updateItem] = useUpdateItemMutation();
+
+  console.log('editId', editId);
+  const handleOk = async () => {
+    console.log(id, editId, editData);
+    const response = await updateItem({
+      id,
+      editId,
+      body: editData,
+    }).unwrap();
+    if (response) {
+      toast.success(response.message);
+      setModalOpen(false);
+    } else {
+      toast.success('error');
+    }
   };
 
   return (
-    <Table<Item>
-      loading={isLoading}
-      columns={columns}
-      dataSource={formattedData}
-      onChange={onChange}
-    />
+    <>
+      <Table<Item>
+        loading={isLoading}
+        columns={columns}
+        dataSource={formattedData}
+        // onChange={(e) => console.log(e)}
+        onRow={(record) => {
+          return {
+            onClick: () => {
+              // setEditId(record._id);
+              console.log('Row clicked. ID:', record); // access any property
+              // setSelectedId(record.id); // if needed
+              // open modal or navigate
+            },
+          };
+        }}
+      />
+
+      <EditModal
+        open={modalOpen}
+        handleOk={handleOk}
+        setOpen={setModalOpen}
+        onChange={onChange}
+      />
+    </>
   );
 };
 

@@ -25,6 +25,7 @@ import Billing from './pages/Billing';
 // import { billingDataContext } from './contexts/DataContext';
 import ReportDetail from './pages/invoiceDetail';
 import InvoiceData from './pages/Invoice';
+import Service from './pages/Service';
 
 // interface BillingData {
 //   name: string;
@@ -78,7 +79,6 @@ function App() {
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
-
   return loading ? (
     <Loader />
   ) : (
@@ -100,6 +100,15 @@ function App() {
             <>
               <PageTitle title="AL WAHDA INVENTORY" />
               <Dashboard />
+            </>
+          }
+        />
+        <Route
+          path="/invoice/:id"
+          element={
+            <>
+              <PageTitle title="INVOICE" />
+              <InvoiceData />
             </>
           }
         />
@@ -159,12 +168,12 @@ function App() {
           }
         />
         <Route
-          path="/invoice/:invoiceId"
+          path="/Service"
           element={
             <>
               <Suspense fallback={<h1>Loading</h1>}>
-                <PageTitle title="Invoice" />
-                <InvoiceData />
+                <PageTitle title="Service" />
+                <Service />
               </Suspense>
             </>
           }

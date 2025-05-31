@@ -10,13 +10,16 @@ import { useGetInvoiceByIdQuery } from '../store/reportSlice';
 import Loading from '../components/Loading';
 
 const InvoiceData = () => {
-  const { invoiceId } = useParams(); // Extract the invoiceId from the URL
+  const { id } = useParams(); // Extract the invoiceId from the URL
   // const { billingData } = useContext(billingDataContext);
   const invoiceRef = useRef();
   // const [invoice, setInvoice] = useState([]);
   const handleDownload = () => {
     const element = invoiceRef.current;
-    const scale = 1.5;
+    const scale = 2;
+
+    console.log(element);
+    console.log(element);
 
     html2canvas(element, {
       scale,
@@ -25,6 +28,7 @@ const InvoiceData = () => {
       logging: true,
     }).then((canvas) => {
       const imgData = canvas.toDataURL('image/png', 1.0);
+      console.log(imgData);
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'pt',
@@ -36,7 +40,7 @@ const InvoiceData = () => {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      // pdf.save(billingData.name);
+      pdf.save('tes');
     });
   };
 
@@ -64,15 +68,19 @@ const InvoiceData = () => {
   //   }
   // }, [invoiceId]);
 
-  const { data, error, isLoading } = useGetInvoiceByIdQuery(invoiceId);
+  const { data, error, isLoading } = useGetInvoiceByIdQuery(id);
 
   console.log('data, error, loading', isLoading);
   // console.log('invoice',invoice);
 
+  const showTaxService = data?.data?.items?.some(
+    (item: any) => item?.serviceCharge > 0 && item?.tax > 0,
+  );
+  // console.log('invoice',invoice);
   return (
     <>
       {isLoading ? (
-        <div className="h-screen w-full bg-white opocity-50 flex justify-center items-center">
+        <div className="h-screen w-full bg-white opacity-50 flex justify-center items-center">
           <Loading />
         </div>
       ) : (
@@ -88,7 +96,7 @@ const InvoiceData = () => {
           </style>
           <div
             ref={invoiceRef}
-            className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg border"
+            className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg "
           >
             <div className="flex w-full h-24  bg-black">
               <img src={alwahdaText} className="w-full h-full object-cover" />
@@ -136,25 +144,45 @@ const InvoiceData = () => {
                   <th className="py-2 px-4 border border-gray-200">
                     Unit Price
                   </th>
+                  {showTaxService && (
+                    <th className="py-2 px-4 border border-gray-200">
+                      Service Chr.{' '}
+                    </th>
+                  )}
+                  {showTaxService && (
+                    <th className="py-2 px-4 border border-gray-200">Tax </th>
+                  )}
                   <th className="py-2 px-4 border border-gray-200">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {data?.data?.items?.map((item: any, index: any) => (
                   <tr key={index}>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
                       {index + 1}
                     </td>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
                       {item.description.name}
                     </td>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
                       {item.quantity}
                     </td>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
                       {item?.rate?.toFixed(2)}
                     </td>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+
+                    {showTaxService && (
+                      <>
+                        <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                          {item.serviceCharge?.toFixed(2)}
+                        </td>
+
+                        <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                          {item.tax?.toFixed(2)}
+                        </td>
+                      </>
+                    )}
+                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
                       {item?.total?.toFixed(2)}
                     </td>
                   </tr>
@@ -165,6 +193,12 @@ const InvoiceData = () => {
                   <td className="py-4 px-4 border border-gray-200"></td>
                   <td className="py-4 px-4 border border-gray-200"></td>
                   <td className="py-4 px-4 border border-gray-200"></td>
+                  {showTaxService && (
+                    <>
+                      <td className="py-4 px-4 border border-gray-200"></td>
+                      <td className="py-4 px-4 border border-gray-200"></td>
+                    </>
+                  )}
                 </tr>
                 <tr>
                   <td className="py-4 px-4 border border-gray-200"></td>
@@ -172,18 +206,24 @@ const InvoiceData = () => {
                   <td className="py-4 px-4 border border-gray-200"></td>
                   <td className="py-4 px-4 border border-gray-200"></td>
                   <td className="py-4 px-4 border border-gray-200"></td>
+                  {showTaxService && (
+                    <>
+                      <td className="py-4 px-4 border border-gray-200"></td>
+                      <td className="py-4 px-4 border border-gray-200"></td>
+                    </>
+                  )}
                 </tr>
               </tbody>
               <tfoot>
-                {/* {data?.data?.discount > 0 && (
+                {data?.data?.discount > 0 && (
                   <tr>
                     <td
-                      colSpan="4"
+                      colSpan="6"
                       className="py-2 px-4 text-right font-semibold border border-gray-200"
                     >
                       Sub total
                     </td>
-                    <td className="py-2 text-black px-4 font-semibold border border-gray-200">
+                    <td className="py-2 text-black px-4 font-semibold border border-gray-200 text-nowrap">
                       AED {data?.data?.sub_total?.toFixed(2)}{' '}
                     </td>
                   </tr>
@@ -191,24 +231,24 @@ const InvoiceData = () => {
                 {data?.data?.discount > 0 && (
                   <tr>
                     <td
-                      colSpan="4"
+                      colSpan={`${showTaxService ? '6' : '4'}`}
                       className="py-2 px-4 text-right font-semibold border border-gray-200"
                     >
                       Discount
                     </td>
-                    <td className="py-2 px-4 text-black font-semibold border border-gray-200">
+                    <td className="py-2 px-4 text-black font-semibold border border-gray-200 text-nowrap">
                       AED {data?.data?.discount?.toFixed(2)}{' '}
                     </td>
                   </tr>
-                )} */}
+                )}
                 <tr>
                   <td
-                    colSpan="4"
+                    colSpan={`${showTaxService ? '6' : '4'}`}
                     className="py-2 px-4 text-right font-bold border border-gray-200"
                   >
                     Total
                   </td>
-                  <td className="py-2 text-black px-4 font-bold border border-gray-200">
+                  <td className="py-2 text-black px-4 font-bold border border-gray-200 text-nowrap">
                     AED {data?.data?.grand_total?.toFixed(2)}{' '}
                   </td>
                 </tr>
