@@ -117,6 +117,8 @@ const Invoice = () => {
               <th className="py-2 px-10 border border-gray-200">Description</th>
               <th className="py-2 px-4 border border-gray-200">Quantity</th>
               <th className="py-2 px-4 border border-gray-200">Unit Price</th>
+              <th className="py-2 px-4 border border-gray-200">Service Chr.</th>
+              <th className="py-2 px-4 border border-gray-200">Tax</th>
               <th className="py-2 px-4 border border-gray-200">Total</th>
             </tr>
           </thead>
@@ -135,6 +137,16 @@ const Invoice = () => {
                 <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
                   {item?.rate?.toFixed(2)}
                 </td>
+                {item.serviceCharge > 0 && (
+                  <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+                    {item.serviceCharge}
+                  </td>
+                )}
+                {item.tax > 0 && (
+                  <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
+                    {item.tax}
+                  </td>
+                )}
                 <td className="py-2 px-4 text-center text-black font-medium border border-gray-200">
                   {item?.total?.toFixed(2)}
                 </td>
