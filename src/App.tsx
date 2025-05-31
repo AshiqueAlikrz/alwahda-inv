@@ -7,7 +7,7 @@ import SignIn from './pages/Authentication/SignIn';
 import SignUp from './pages/Authentication/SignUp';
 // import Calendar from './pages/Calendar';
 const Report = lazy(() => import('./pages/Report/index'));
-const AllReports = lazy(() => import('./pages/Report/allReports'));
+const AllReports = lazy(() => import('./pages/Report/AllReports')); 
 const DailyReports = lazy(() => import('./pages/Report/DailyReports'));
 const MontlyReports = lazy(() => import('./pages/Report/MontlyReports'));
 import Chart from './pages/Chart';
