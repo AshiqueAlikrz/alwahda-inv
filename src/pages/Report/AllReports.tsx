@@ -4,9 +4,16 @@ import { Button, Dropdown, Menu, Popconfirm, Table } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
-import { billingDataContext } from '../contexts/DataContext';
+// import { billingDataContext } from '../contexts/DataContext';
 import { IoMdMore } from 'react-icons/io';
 import { QuestionCircleOutlined } from '@ant-design/icons';
+import useReportApi from '../../api/report';
+import { useSelector } from 'react-redux';
+import {
+  useGetUsersByIdQuery,
+  useGetUsersQuery,
+} from '../../store/reportSlice';
+import ButtonCard from '../../components/buttonCard';
 
 interface Item {
   id: number;
@@ -110,64 +117,61 @@ const onChange: TableProps<DataType>['onChange'] = (
 };
 
 const Calendar = () => {
+  // const allInvoices = useSelector((state: any) => state.report.reportData);
   const navigate = useNavigate();
+  // const { getInvoice } = useReportApi();
 
-  const { invoice, setInvoice } = useContext(billingDataContext);
+  const { data, error, isLoading } = useGetUsersQuery();
 
-  useEffect(() => {
-    const getInvoice = async () => {
-      try {
-        const response = await axios.get(
-          'https://inventory-backend-azure.vercel.app/api/reports/getInvoice',
-        );
-        // Flatten data for the table
+  console.log('data, error, isLoading', data, error, isLoading);
 
-        const formattedData = response.data.data.map(
-          (invoice: any, index: number) => {
-            return {
-              key: index,
-              id: invoice._id,
-              invoice_number: invoice.invoice_number,
-              date: moment(invoice.date).format('DD-MM-YYYY'),
-              name: invoice.name,
-              sub_total: invoice.sub_total,
-              grand_total: invoice.grand_total,
-              discount: invoice.discount,
-              paid: invoice?.paid,
-              edit: <IoMdMore />,
-              // tax: invoice?.items[0].tax,
-              // serviceCharge: invoice?.items[0].serviceCharge,
-              // ...invoice.items[1], // Use the first item for simplicity
-              // item_id: invoice.items[0]?.id,
-              // item_description: invoice.items[0]?.description,
-              // item_quantity: invoice.items[0]?.quantity,
-              // item_rate: invoice.items[0]?.rate,
-              // item_total: invoice.items[0]?.total,
-            };
-          },
-        );
+  // useEffect(() => {
+  //   if (!data?.data?.length) {
+  //     fetchReport();
+  //   }
+  // }, []);
 
-        setInvoice(formattedData);
-      } catch (error) {
-        console.error('Error fetching the invoice:', error);
-      }
-    };
-    getInvoice();
-  }, []);
+  // const fetchReport = async () => {
+  //   await getInvoice();
+  // };
+
+  const formattedData = data
+    ? data?.data?.map((invoice: any, index: number) => {
+        return {
+          key: index,
+          id: invoice._id,
+          invoice_number: invoice.invoice_number,
+          date: moment(invoice.date).format('DD-MM-YYYY'),
+          name: invoice.name,
+          sub_total: invoice.sub_total,
+          grand_total: invoice.grand_total,
+          discount: invoice.discount,
+          paid: invoice?.paid,
+          edit: <IoMdMore />,
+          // tax: invoice?.items[0].tax,
+          // serviceCharge: invoice?.items[0].serviceCharge,
+          // ...invoice.items[1], // Use the first item for simplicity
+          // item_id: invoice.items[0]?.id,
+          // item_description: invoice.items[0]?.description,
+          // item_quantity: invoice.items[0]?.quantity,
+          // item_rate: invoice.items[0]?.rate,
+          // item_total: invoice.items[0]?.total,
+        };
+      })
+    : [];
 
   return (
-    <>
-      <Table<DataType>
-        columns={columns}
-        dataSource={invoice}
-        onChange={onChange}
-        onRow={(record) => ({
-          onClick: () => {
-            navigate(`/report/${record.id}`);
-          },
-        })}
-      />
-    </>
+    <Table<DataType>
+      loading={isLoading}
+      columns={columns}
+      dataSource={formattedData}
+      onChange={onChange}
+      onRow={(record) => ({
+        onClick: () => {
+          navigate(`/report/${record.id}`);
+        },
+      })}
+    />
   );
 };
 

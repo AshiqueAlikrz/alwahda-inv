@@ -5,7 +5,7 @@ import { MdDeleteOutline } from 'react-icons/md';
 import { TiPlus } from 'react-icons/ti';
 // import Invoice from './Invoice';
 import { useNavigate } from 'react-router-dom';
-import { billingDataContext } from '../contexts/DataContext';
+// import { billingDataContext } from '../contexts/DataContext';
 import { IoMdPrint } from 'react-icons/io';
 import { toast } from 'react-toastify';
 import * as Yup from 'yup';
@@ -13,6 +13,7 @@ import { Formik, Form, Field, ErrorMessage, useFormik } from 'formik';
 import axios from 'axios';
 import { Alert } from 'antd';
 import { CloseSquareFilled } from '@ant-design/icons';
+import { useCreateInvoiceMutation } from '../store/reportSlice';
 
 const colors1 = ['#fc6076', '#FF0000'];
 const colors2 = ['#A4FF6B', '#008000'];
@@ -21,10 +22,33 @@ const getHoverColors = (colors: any) =>
 const getActiveColors = (colors: any) =>
   colors.map((color: any) => new TinyColor(color).darken(5).toString());
 
+const environment = import.meta.env;
+
 const Billing = () => {
   const navigate = useNavigate();
-  const { billingData, setBillingData, invoice, setInvoice } =
-    useContext(billingDataContext);
+
+  const initialBillingData = {
+    name: '',
+    date: '',
+    items: [
+      {
+        id: 0,
+        description: '',
+        rate: 0,
+        quantity: 0,
+        serviceCharge: 0,
+        tax: 0,
+        total: 0,
+      },
+    ],
+    sub_total: 0,
+    invoice_number: '',
+    grand_total: 0,
+    discount: 0,
+    paid: false,
+  };
+  // const { billingData, setBillingData, invoice, setInvoice } =
+  //   useContext(billingDataContext);
 
   const [allServices, setAllServices] = useState(null);
   const [open, setOpen] = useState(false);
@@ -88,20 +112,31 @@ const Billing = () => {
     console.log(e, 'I was closed.');
   };
 
+  // const { data, error, isLoading } = useCreateInvoiceMutation(invoiceId);
+
+  const [createInvoice] = useCreateInvoiceMutation();
+
   const formik = useFormik({
-    initialValues: billingData,
+    initialValues: initialBillingData,
     validationSchema,
     onSubmit: async (values) => {
       try {
         if (values?.items?.length === 0) {
           alert('Add atlease 1 item');
         } else {
-          setBillingData(values);
-          const response = await axios.post(
-            'https://inventory-backend-azure.vercel.app/api/reports/createInvoice',
-            values,
-          );
-          if (response.status === 201) {
+          console.log('hiiii');
+          console.log('values', values);
+          // setBillingData(values);
+          // const response = await axios.post(
+          // const response = await axios.post(
+          //   `${environment.VITE_DOMAIN_URL}/reports/createInvoice`,
+          //   `${environment.VITE_DOMAIN_URL}/reports/createInvoice`,
+          //   values,
+          //   values,
+          // );
+          const response = await createInvoice(values).unwrap();
+
+          if (response) {
             formik.resetForm({
               values: {
                 name: '',
@@ -114,7 +149,7 @@ const Billing = () => {
                 paid: false,
               },
             });
-            toast.success('Invoice created successfully!');
+            toast.success(response.message);
             <Alert
               message="Error Text"
               description="Error Description Error Description Error Description Error Description Error Description Error Description"
@@ -125,13 +160,13 @@ const Billing = () => {
               }}
               onClose={onClose}
             />;
-            navigate(`/invoice/${response.data.data._id}`);
+            navigate(`/invoice/${response.data._id}`);
           } else {
             toast.error('Error creating invoice');
           }
         }
       } catch (error: any) {
-        toast.error('Error:', error);
+        toast.error(error);
       }
     },
   });
@@ -191,7 +226,7 @@ const Billing = () => {
     const getService = async () => {
       try {
         const response = await axios.get(
-          'https://inventory-backend-azure.vercel.app/api/reports/getService',
+          `${environment.VITE_DOMAIN_URL}/reports/getService`,
         );
 
         setAllServices(response.data.data);
@@ -201,6 +236,8 @@ const Billing = () => {
     };
     getService();
   }, []);
+
+  console.log('render');
 
   return (
     <>
@@ -227,7 +264,7 @@ const Billing = () => {
             className="h-20 w-44"
             onClick={showModal}
           >
-            BILLING
+            BILL
           </Button>
         </ConfigProvider>
         <ConfigProvider
@@ -246,7 +283,7 @@ const Billing = () => {
             },
           }}
         >
-          <Button
+          {/* <Button
             type="primary"
             size="large"
             className="h-20 w-44"
@@ -255,7 +292,7 @@ const Billing = () => {
             }}
           >
             REPORT
-          </Button>
+          </Button> */}
         </ConfigProvider>
       </Space>
 
