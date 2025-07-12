@@ -1,19 +1,28 @@
 import axios from 'axios';
-import React, { useContext, useEffect, useState } from 'react';
-import { Button, Dropdown, Menu, Popconfirm, Table } from 'antd';
-import type { TableColumnsType, TableProps } from 'antd';
+import React, { useState } from 'react';
+import {
+  Button,
+  DatePicker,
+  Dropdown,
+  Input,
+  Menu,
+  Modal,
+  Table,
+  Switch,
+} from 'antd';
+import type { DatePickerProps, TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
-// import { billingDataContext } from '../contexts/DataContext';
 import { IoMdMore } from 'react-icons/io';
-import { QuestionCircleOutlined } from '@ant-design/icons';
-import useReportApi from '../../api/report';
-import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import { Formik, Form } from 'formik';
+import * as Yup from 'yup';
+import dayjs from 'dayjs';
+
 import {
-  useGetUsersByIdQuery,
   useGetUsersQuery,
+  useUpdateInvoiceMutation,
 } from '../../store/reportSlice';
-import ButtonCard from '../../components/buttonCard';
 
 interface Item {
   id: number;
@@ -33,145 +42,224 @@ export interface DataType {
   grand_total: number;
   paid: boolean;
   id: string;
+  discount: number;
 }
-const handleMenuClick = (e: any) => {
-  console.log('eee', e);
-  // Handle your edit or delete action here
-};
-const handleDelete = async () => {
-  await axios.delete('http://localhost:8081/api/reports/invoice/:invoiceId');
-  console.log('Task deleted'); // Handle the delete action here
-};
-
-const menu = (
-  <Menu
-    onClick={(e) => {
-      e.domEvent.stopPropagation();
-      handleMenuClick(e); // Call the function properly
-    }}
-  >
-    <Menu.Item key="edit">Edit</Menu.Item>
-    <Menu.Item key="delete">
-      {' '}
-      <Popconfirm
-        title="Delete the task"
-        description="Are you sure to delete this task?"
-        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-        onConfirm={handleDelete}
-        // onCancel={handleCancel}
-      >
-        Delete
-      </Popconfirm>{' '}
-    </Menu.Item>
-  </Menu>
-);
-
-const columns: TableColumnsType<DataType> = [
-  {
-    title: 'Invoice Number',
-    dataIndex: 'invoice_number',
-  },
-  {
-    title: 'Date',
-    dataIndex: 'date',
-  },
-  {
-    title: 'Name',
-    dataIndex: 'name',
-  },
-  {
-    title: 'Sub Total',
-    dataIndex: 'sub_total',
-  },
-  {
-    title: 'Discount',
-    dataIndex: 'discount',
-  },
-  {
-    title: 'Grand Total',
-    dataIndex: 'grand_total',
-  },
-  {
-    title: 'Paid',
-    dataIndex: 'paid',
-    render: (paid) => (paid ? 'Yes' : 'No'), // Renders as "Yes" or "No"
-  },
-  // {
-  //   title: '',
-  //   dataIndex: 'edit',
-  //   render: (_, record) => (
-  //     <Dropdown overlay={menu} trigger={['click']}>
-  //       <Button icon={<IoMdMore />} onClick={(e) => e.stopPropagation()} />
-  //     </Dropdown>
-  //   ),
-  // },
-];
-
-const onChange: TableProps<DataType>['onChange'] = (
-  pagination,
-  filters,
-  sorter,
-  extra,
-) => {
-  // console.log('params', pagination, filters, sorter, extra);
-};
 
 const Calendar = () => {
-  // const allInvoices = useSelector((state: any) => state.report.reportData);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [invoiceId, setInvoiceId] = useState('');
+  const [editData, setEditData] = useState({
+    discount: 0,
+    name: '',
+    paid: false,
+    date: '',
+  });
+
   const navigate = useNavigate();
-  // const { getInvoice } = useReportApi();
+  const { data, isLoading } = useGetUsersQuery();
+  const [updateInvoice] = useUpdateInvoiceMutation();
 
-  const { data, error, isLoading } = useGetUsersQuery();
+  const handleMenuClick = (record: DataType) => {
+    const isoDate = moment(record.date, 'DD-MM-YYYY').format('YYYY-MM-DD');
+    setEditData({
+      discount: record.discount,
+      name: record.name,
+      paid: record.paid,
+      date: isoDate,
+    });
+    setInvoiceId(record.id);
+    setModalOpen(true);
+  };
 
-  console.log('data, error, isLoading', data, error, isLoading);
+  const menu = (record: DataType) => (
+    <Menu
+      onClick={(e) => {
+        e.domEvent.stopPropagation();
+        if (e.key === 'edit') {
+          handleMenuClick(record);
+        } else if (e.key === 'invoice') {
+          navigate(`/invoice/${record.id}`);
+        }
+      }}
+    >
+      <Menu.Item key="edit">Edit</Menu.Item>
+      <Menu.Item key="invoice">Print Invoice</Menu.Item>
+    </Menu>
+  );
 
-  // useEffect(() => {
-  //   if (!data?.data?.length) {
-  //     fetchReport();
-  //   }
-  // }, []);
-
-  // const fetchReport = async () => {
-  //   await getInvoice();
-  // };
+  const columns: TableColumnsType<DataType> = [
+    {
+      title: 'Invoice Number',
+      dataIndex: 'invoice_number',
+    },
+    {
+      title: 'Date',
+      dataIndex: 'date',
+    },
+    {
+      title: 'Name',
+      dataIndex: 'name',
+    },
+    {
+      title: 'Sub Total',
+      dataIndex: 'sub_total',
+    },
+    {
+      title: 'Discount',
+      dataIndex: 'discount',
+    },
+    {
+      title: 'Grand Total',
+      dataIndex: 'grand_total',
+    },
+    {
+      title: 'Paid',
+      dataIndex: 'paid',
+      render: (paid) => (paid ? 'Yes' : 'No'),
+    },
+    {
+      title: '',
+      dataIndex: 'edit',
+      render: (_, record) => (
+        <Dropdown overlay={menu(record)} trigger={['click']}>
+          <Button
+            icon={<IoMdMore />}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          />
+        </Dropdown>
+      ),
+    },
+  ];
 
   const formattedData = data
-    ? data?.data?.map((invoice: any, index: number) => {
-        return {
-          key: index,
-          id: invoice._id,
-          invoice_number: invoice.invoice_number,
-          date: moment(invoice.date).format('DD-MM-YYYY'),
-          name: invoice.name,
-          sub_total: invoice.sub_total,
-          grand_total: invoice.grand_total,
-          discount: invoice.discount,
-          paid: invoice?.paid,
-          edit: <IoMdMore />,
-          // tax: invoice?.items[0].tax,
-          // serviceCharge: invoice?.items[0].serviceCharge,
-          // ...invoice.items[1], // Use the first item for simplicity
-          // item_id: invoice.items[0]?.id,
-          // item_description: invoice.items[0]?.description,
-          // item_quantity: invoice.items[0]?.quantity,
-          // item_rate: invoice.items[0]?.rate,
-          // item_total: invoice.items[0]?.total,
-        };
-      })
+    ? data.data.map((invoice: any, index: number) => ({
+        key: index,
+        id: invoice._id,
+        invoice_number: invoice.invoice_number,
+        date: moment(invoice.date).format('DD-MM-YYYY'),
+        name: invoice.name,
+        sub_total: invoice.sub_total,
+        grand_total: invoice.grand_total,
+        discount: invoice.discount,
+        paid: invoice.paid,
+      }))
     : [];
 
+  const validationSchema = Yup.object().shape({
+    name: Yup.string().required('Name is required'),
+    discount: Yup.number().min(0, 'Discount cannot be negative'),
+    date: Yup.string().required('Date is required'),
+    paid: Yup.boolean(),
+  });
+
   return (
-    <Table<DataType>
-      loading={isLoading}
-      columns={columns}
-      dataSource={formattedData}
-      onChange={onChange}
-      onRow={(record) => ({
-        onClick: () => {
-          navigate(`/report/${record.id}`);
-        },
-      })}
-    />
+    <>
+      <Table<DataType>
+        loading={isLoading}
+        columns={columns}
+        dataSource={formattedData}
+        onRow={(record) => ({
+          onClick: () => navigate(`/report/${record.id}`),
+        })}
+      />
+
+      <Modal
+        title="Edit Invoice"
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        footer={null}
+      >
+        <Formik
+          initialValues={editData}
+          validationSchema={validationSchema}
+          onSubmit={async (values) => {
+            try {
+              const response = await updateInvoice({
+                invoiceId,
+                body: values,
+              }).unwrap();
+
+              if (response) {
+                toast.success(response.message);
+                setModalOpen(false);
+              }
+            } catch (error) {
+              toast.error('Failed to update invoice');
+            }
+          }}
+          enableReinitialize
+        >
+          {({
+            values,
+            handleChange,
+            setFieldValue,
+            handleSubmit,
+            errors,
+            touched,
+          }) => (
+            <Form onSubmit={handleSubmit}>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col">
+                  <label>Name:</label>
+                  <Input
+                    name="name"
+                    value={values.name}
+                    onChange={handleChange}
+                  />
+                  {errors.name && touched.name && (
+                    <div className="text-red-500 text-sm">{errors.name}</div>
+                  )}
+                </div>
+
+                <div className="flex flex-col">
+                  <label>Discount:</label>
+                  <Input
+                    name="discount"
+                    type="number"
+                    value={values.discount}
+                    onChange={handleChange}
+                  />
+                  {errors.discount && touched.discount && (
+                    <div className="text-red-500 text-sm">
+                      {errors.discount}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col">
+                  <label>Date:</label>
+                  <DatePicker
+                    value={values.date ? dayjs(values.date) : null}
+                    onChange={(date, dateString) =>
+                      setFieldValue('date', dateString)
+                    }
+                  />
+                  {errors.date && touched.date && (
+                    <div className="text-red-500 text-sm">{errors.date}</div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label>Paid:</label>
+                  <Switch
+                    checked={values.paid}
+                    onChange={(checked) => setFieldValue('paid', checked)}
+                  />
+                </div>
+
+                <div className="text-right pt-4">
+                  <Button type="primary" htmlType="submit">
+                    Submit
+                  </Button>
+                </div>
+              </div>
+            </Form>
+          )}
+        </Formik>
+      </Modal>
+    </>
   );
 };
 

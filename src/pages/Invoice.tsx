@@ -158,31 +158,31 @@ const InvoiceData = () => {
               <tbody>
                 {data?.data?.items?.map((item: any, index: any) => (
                   <tr key={index}>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
                       {index + 1}
                     </td>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
                       {item.description.name}
                     </td>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
                       {item.quantity}
                     </td>
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 text-center   font-medium border  text-nowrap">
                       {item?.rate?.toFixed(2)}
                     </td>
 
                     {showTaxService && (
                       <>
-                        <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                        <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
                           {item.serviceCharge?.toFixed(2)}
                         </td>
 
-                        <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                        <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
                           {item.tax?.toFixed(2)}
                         </td>
                       </>
                     )}
-                    <td className="py-2 px-4 text-center text-black font-medium border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 text-center  font-medium border text-nowrap">
                       {item?.total?.toFixed(2)}
                     </td>
                   </tr>
@@ -223,7 +223,7 @@ const InvoiceData = () => {
                     >
                       Sub total
                     </td>
-                    <td className="py-2 text-black px-4 font-semibold border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 font-semibold border border-gray-200 text-nowrap">
                       AED {data?.data?.sub_total?.toFixed(2)}{' '}
                     </td>
                   </tr>
@@ -248,14 +248,14 @@ const InvoiceData = () => {
                   >
                     Total
                   </td>
-                  <td className="py-2 text-black px-4 font-bold border border-gray-200 text-nowrap">
+                  <td className="py-2  px-4 font-bold border border-gray-200 text-nowrap">
                     AED {data?.data?.grand_total?.toFixed(2)}{' '}
                   </td>
                 </tr>
               </tfoot>
             </table>
 
-            <div className="flex justify-around items-center h-8 mt-4 bg-blue-800">
+            <div className="flex justify-between items-center h-8 p-3 bg-blue-800">
               <p className="text-white font-semibold flex mb-3">
                 {/* <GiWorld className="m-1 size-4" /> */}
                 www.alwahdaonline.com

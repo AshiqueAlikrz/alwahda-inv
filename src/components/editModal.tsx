@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button, Modal } from 'antd';
 import { Input } from 'antd';
 
-const EditModal = ({ open, setOpen, onChange, handleOk }: any) => {
+const EditModal = ({ open, setOpen, onChange, handleOk, selectRow }: any) => {
   // const [open, setOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [modalText, setModalText] = useState('Content of the modal');
@@ -25,6 +25,8 @@ const EditModal = ({ open, setOpen, onChange, handleOk }: any) => {
     setOpen(false);
   };
 
+  console.log('selectRow', selectRow);
+
   return (
     <>
       <Modal
@@ -42,17 +44,39 @@ const EditModal = ({ open, setOpen, onChange, handleOk }: any) => {
               onChange={onChange}
               name="serviceCharge"
               placeholder="Service Charge"
+              value={selectRow.serviceCharge}
             />
           </div>
-          {/* <div className="flex gap-1">
+          <div className="flex gap-1">
+            <label className="text-nowrap">Rate :</label>
+            <Input
+              type="number"
+              onChange={onChange}
+              name="rate"
+              placeholder="Rate"
+              value={selectRow.rate}
+            />
+          </div>
+          <div className="flex gap-1">
             <label className="text-nowrap">Tax :</label>
             <Input
               onChange={onChange}
               type="number"
               placeholder="Tax"
               name="tax"
+              value={selectRow.tax}
             />
-          </div> */}
+          </div>
+          <div className="flex gap-1">
+            <label className="text-nowrap">Quantity :</label>
+            <Input
+              onChange={onChange}
+              type="number"
+              placeholder="Quantity"
+              name="quantity"
+              value={selectRow.quantity}
+            />
+          </div>
         </div>
       </Modal>
     </>

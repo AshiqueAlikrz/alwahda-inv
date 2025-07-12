@@ -25,6 +25,8 @@ interface Item {
   description: string;
   quantity: number;
   rate: number;
+  serviceCharge: number;
+  tax: number;
   total: number;
   _id: string;
 }
@@ -176,7 +178,9 @@ const InvoiceDetail = () => {
 
   const [editData, setEditData] = useState({
     serviceCharge: 0,
+    rate: 0,
     tax: 0,
+    quantity: 0,
   });
 
   const onChange = (e) => {
@@ -224,7 +228,8 @@ const InvoiceDetail = () => {
           return {
             onClick: () => {
               // setEditId(record._id);
-              console.log('Row clicked. ID:', record); // access any property
+              console.log('Row clicked. ID:', record);
+              setEditData(record); // access any property
               // setSelectedId(record.id); // if needed
               // open modal or navigate
             },
@@ -237,6 +242,7 @@ const InvoiceDetail = () => {
         handleOk={handleOk}
         setOpen={setModalOpen}
         onChange={onChange}
+        selectRow={editData}
       />
     </>
   );

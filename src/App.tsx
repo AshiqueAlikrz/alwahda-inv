@@ -85,7 +85,7 @@ function App() {
     <DefaultLayout>
       <Routes>
         <Route
-          path="/billing"
+          path="/"
           element={
             <>
               <PageTitle title="billing | TailAdmin - Tailwind CSS Admin Dashboard Template" />
@@ -93,7 +93,7 @@ function App() {
             </>
           }
         />
-
+{/* 
         <Route
           path="/"
           element={
@@ -102,7 +102,7 @@ function App() {
               <Dashboard />
             </>
           }
-        />
+        /> */}
         <Route
           path="/invoice/:id"
           element={

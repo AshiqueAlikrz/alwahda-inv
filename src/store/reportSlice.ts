@@ -56,7 +56,7 @@ export const apiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: environment.VITE_DOMAIN_URL,
   }),
-  tagTypes: ['Invoices', 'Service'],
+  tagTypes: ['Invoices', 'Service', 'userItems'],
   endpoints: (builder) => ({
     getUsers: builder.query<any, void>({
       query: () => '/reports/getInvoice',
@@ -64,6 +64,7 @@ export const apiSlice = createApi({
     }),
     getUsersById: builder.query<any, string | undefined>({
       query: (id) => `/reports/items/${id}`,
+      providesTags: ['userItems'],
     }),
     getInvoiceById: builder.query<void, string | undefined>({
       query: (id) => `/reports/invoice/${id}`,
@@ -113,6 +114,14 @@ export const apiSlice = createApi({
         method: 'PUT',
         body,
       }),
+      invalidatesTags: ['userItems'],
+    }),
+    updateInvoice: builder.mutation<any, { invoiceId: string; body: any }>({
+      query: ({ invoiceId, body }) => ({
+        url: `/reports/editinvoice/${invoiceId}`,
+        method: 'PATCH',
+        body,
+      }),
       invalidatesTags: ['Invoices'],
     }),
   }),
@@ -130,6 +139,7 @@ export const {
   useGetDashboardReportQuery,
   useGetAllServiceQuery,
   useCreateServiceMutation,
+  useUpdateInvoiceMutation,
 } = apiSlice;
 
 // export const { setReportData } = todosSlice.actions;
