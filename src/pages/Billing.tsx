@@ -18,6 +18,7 @@ import {
   useGetAllservicesQuery,
 } from '../store/reportSlice';
 import Loading from '../components/Loading';
+import CheckboxOne from '../components/Checkboxes/CheckboxOne';
 
 const colors1 = ['#fc6076', '#FF0000'];
 const colors2 = ['#A4FF6B', '#008000'];
@@ -56,6 +57,7 @@ const Billing = () => {
   //   useContext(billingDataContext);
 
   const [open, setOpen] = useState(false);
+  const [vatFromMe, setVatFromMe] = useState(false);
 
   const showModal = () => {
     setOpen(true);
@@ -128,8 +130,6 @@ const Billing = () => {
         if (values?.items?.length === 0) {
           alert('Add atlease 1 item');
         } else {
-          console.log('hiiii');
-          console.log('values', values);
           // setBillingData(values);
           // const response = await axios.post(
           // const response = await axios.post(
@@ -177,23 +177,31 @@ const Billing = () => {
 
   useEffect(() => {
     formik?.values?.items?.forEach((item: any, index: any) => {
-      const formattedTotal =
-        (item.quantity || 0) * (item.rate || 0) +
-        parseFloat(((item.serviceCharge || 0) + (item.tax || 0)).toFixed(2));
+      const formattedTotal = vatFromMe
+        ? (item.quantity || 0) * (item.rate || 0) +
+          parseFloat((item.serviceCharge || 0).toFixed(2))
+        : (item.quantity || 0) * (item.rate || 0) +
+          parseFloat(((item.serviceCharge || 0) + (item.tax || 0)).toFixed(2));
 
       const tax = (item.serviceCharge / 100) * 5;
       formik.setFieldValue(`items[${index}].total`, formattedTotal);
       formik.setFieldValue(`items[${index}].tax`, tax);
 
       const isVatApplied = item.serviceCharge > 0;
-      console.log('isVatApplied', isVatApplied);
       formik.setFieldValue(`items[${index}].vat`, isVatApplied);
     });
-  }, [formik.values.items, formik.setFieldValue]);
+  }, [formik.values.items, formik.setFieldValue, vatFromMe]);
 
   const subTotal = useMemo(() => {
     return formik.values.items.reduce(
       (acc: any, item: any) => acc + item.total,
+      0,
+    );
+  }, [formik.values.items]);
+
+  const totalVat = useMemo(() => {
+    return formik.values.items.reduce(
+      (acc: any, item: any) => acc + item.tax,
       0,
     );
   }, [formik.values.items]);
@@ -227,6 +235,7 @@ const Billing = () => {
 
   useEffect(() => {
     formik.setFieldValue('sub_total', subTotal);
+    formik.setFieldValue('total_vat', totalVat);
     formik.setFieldValue('grand_total', grandTotal);
   }, [subTotal, grandTotal]);
 
@@ -253,6 +262,8 @@ const Billing = () => {
   //   };
   //   getService();
   // }, []);
+
+  console.log('formik', formik.values);
 
   return (
     <>
@@ -388,6 +399,10 @@ const Billing = () => {
               {formik.errors.date && formik.touched.date ? (
                 <div className="text-red-600">{formik.errors.date}</div>
               ) : null}
+            </div>
+            <div className="w-full h-4 font-bold text-xs gap-2 flex items-center justify-end">
+              VAT applied by company :{' '}
+              <CheckboxOne isChecked={vatFromMe} setIsChecked={setVatFromMe} />
             </div>
             <div className="!bg-slate-100 !shadow-md !rounded !my-6">
               <table className="min-w-max w-full table-auto ">
@@ -530,8 +545,7 @@ const Billing = () => {
                       </td>
 
                       {/* service chr. */}
-
-                      <td className="py-3 px-7 text-left ">
+                      <td className="items-center gap-2 flex py-3 mx-5 text-left">
                         <input
                           type="number"
                           className="form-input w-16 h-7 rounded text-center border border-slate-300 font-semibold"
@@ -600,6 +614,17 @@ const Billing = () => {
                     </td>
                     <td className="py-3 px-6 text-right font-semibold">
                       {formik?.values?.sub_total?.toFixed(2)} AED
+                    </td>
+                  </tr>
+                  <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                    <td
+                      colSpan={8}
+                      className="py-3 px-6 text-right font-semibold"
+                    >
+                      Total VAT :
+                    </td>
+                    <td className="py-3 px-6 text-right font-semibold">
+                      {formik?.values?.total_vat?.toFixed(2)} AED
                     </td>
                   </tr>
 

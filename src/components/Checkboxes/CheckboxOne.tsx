@@ -1,34 +1,54 @@
 import { useState } from 'react';
 
-const CheckboxOne = () => {
-  const [isChecked, setIsChecked] = useState<boolean>(false);
-
+type CheckboxOneProps = {
+  className?: string;
+  label?: string;
+  isChecked?: boolean;
+  setIsChecked?: (checked: boolean) => void;
+};
+const CheckboxOne = ({
+  className,
+  label,
+  isChecked,
+  setIsChecked,
+}: CheckboxOneProps) => {
   return (
     <div>
       <label
         htmlFor="checkboxLabelOne"
-        className="flex cursor-pointer select-none items-center"
+        className="flex cursor-pointer select-none items-center gap-2"
       >
         <div className="relative">
           <input
             type="checkbox"
             id="checkboxLabelOne"
             className="sr-only"
-            onChange={() => {
-              setIsChecked(!isChecked);
-            }}
+            checked={isChecked}
+            onChange={() => setIsChecked(!isChecked)}
           />
+
           <div
-            className={`mr-4 flex h-5 w-5 items-center justify-center rounded border ${
-              isChecked && 'border-primary bg-gray dark:bg-transparent'
-            }`}
+            className={`${className} flex h-4 w-4 items-center justify-center rounded border transition-all
+              ${isChecked ? 'border-primary bg-primary' : 'border-gray-400'}
+            `}
           >
-            <span
-              className={`h-2.5 w-2.5 rounded-sm ${isChecked && 'bg-primary'}`}
-            ></span>
+            {isChecked && (
+              <svg
+                className="h-3 w-3 text-white"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+              >
+                <path
+                  d="M5 10l3 3 7-7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
           </div>
         </div>
-        Checkbox Text
       </label>
     </div>
   );

@@ -21,11 +21,8 @@ const EditModal = ({ open, setOpen, onChange, handleOk, selectRow }: any) => {
   // };
 
   const handleCancel = () => {
-    console.log('Clicked cancel button');
     setOpen(false);
   };
-
-  console.log('selectRow', selectRow);
 
   return (
     <>

@@ -14,35 +14,40 @@ const InvoiceData = () => {
   // const { billingData } = useContext(billingDataContext);
   const invoiceRef = useRef();
   // const [invoice, setInvoice] = useState([]);
-  const handleDownload = () => {
-    const element = invoiceRef.current;
-    const scale = 2;
+const handleDownload = async () => {
+  const element = invoiceRef.current;
 
-    console.log(element);
-    console.log(element);
+  const canvas = await html2canvas(element, {
+    scale: 3,                 // 🔥 Higher scale = sharper text
+    useCORS: true,
+    backgroundColor: "#ffffff",
+  });
 
-    html2canvas(element, {
-      scale,
-      useCORS: true,
-      allowTaint: true,
-      logging: true,
-    }).then((canvas) => {
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      console.log(imgData);
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'pt',
-        format: 'a4',
-      });
+  const imgData = canvas.toDataURL("image/png"); // Lossless
 
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "pt",
+    format: "a4",
+  });
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save('tes');
-    });
-  };
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+  pdf.addImage(
+    imgData,
+    "PNG",
+    0,
+    0,
+    pdfWidth,
+    pdfHeight,
+    undefined,
+    "SLOW" // Best quality rendering
+  );
+
+  pdf.save("invoice-high-quality.pdf");
+};
+
 
   const printPdf = () => {
     window.print();
@@ -70,13 +75,9 @@ const InvoiceData = () => {
 
   const { data, error, isLoading } = useGetInvoiceByIdQuery(id);
 
-  console.log('data, error, loading', isLoading);
-  // console.log('invoice',invoice);
-
   const showTaxService = data?.data?.items?.some(
     (item: any) => item?.serviceCharge > 0 && item?.tax > 0,
   );
-  // console.log('invoice',invoice);
   return (
     <>
       {isLoading ? (
@@ -241,6 +242,17 @@ const InvoiceData = () => {
                     </td>
                   </tr>
                 )}
+                <tr>
+                  <td
+                    colSpan={`${showTaxService ? '6' : '4'}`}
+                    className="py-2 px-4 text-right font-bold border border-gray-200"
+                  >
+                    VAT
+                  </td>
+                  <td className="py-2  px-4 font-bold border border-gray-200 text-nowrap">
+                    AED {data?.data?.total_vat?.toFixed(2)}{' '}
+                  </td>
+                </tr>
                 <tr>
                   <td
                     colSpan={`${showTaxService ? '6' : '4'}`}

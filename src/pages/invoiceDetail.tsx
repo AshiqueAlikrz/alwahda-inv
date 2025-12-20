@@ -192,16 +192,8 @@ const InvoiceDetail = () => {
 
   const [editId, setEditId] = useState('');
 
-  console.log('editData', editData);
-
-  // const modalOpen = () => {};
-
-  // console.log('hiii');
-
-  // console.log(editId);
   const [updateItem] = useUpdateItemMutation();
 
-  console.log('editId', editId);
   const handleOk = async () => {
     console.log(id, editId, editData);
     const response = await updateItem({
