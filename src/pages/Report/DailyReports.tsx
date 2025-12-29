@@ -84,6 +84,14 @@ const columns: TableColumnsType<DataType> = [
     title: 'Profit',
     dataIndex: 'profit',
   },
+  {
+    title: 'VAT',
+    dataIndex: 'vat',
+  },
+  {
+    title: 'Discount',
+    dataIndex: 'discount',
+  },
 
   //   {
   //     title: '',
@@ -131,6 +139,8 @@ const Calendar = () => {
           date: moment(invoice.date).format('DD-MM-YYYY'),
           expense: invoice.expense,
           profit: invoice.profit,
+          vat: invoice.vat ? invoice.vat : 0,
+          discount: invoice.discount ? invoice.discount : 0,
           //   paid: invoice?.paid,
           //   edit: <IoMdMore />,
           //   // tax: invoice?.items[0].tax,

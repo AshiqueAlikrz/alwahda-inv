@@ -47,10 +47,12 @@ const Billing = () => {
         vat: false,
       },
     ],
-    sub_total: 0,
-    invoice_number: '',
-    grand_total: 0,
+    subTotal: 0,
+    invoiceNumber: '',
+    grandTotal: 0,
+    totalVat: 0,
     discount: 0,
+    profit: 0,
     paid: false,
   };
   // const { billingData, setBillingData, invoice, setInvoice } =
@@ -75,9 +77,9 @@ const Billing = () => {
     const newRow = {
       id: index != Number ? 1 : index + 1,
       description: '',
-      quantity: '',
-      fee: '',
-      serviceCharge: '',
+      quantity: 0,
+      fee: 0,
+      serviceCharge: 0,
       tax: 1,
       total: 0,
     };
@@ -138,19 +140,26 @@ const Billing = () => {
           //   values,
           //   values,
           // );
-          const response = await createInvoice(values).unwrap();
+          const response = await createInvoice({
+            ...values,
+            companyId: '6949745c5a24cbc01d85433c',
+            vatPaidByCompany: vatFromMe,
+            profit: totalProfit,
+          }).unwrap();
 
           if (response) {
             formik.resetForm({
               values: {
                 name: '',
                 date: '',
-                invoice_number: '',
+                invoiceNumber: '',
                 items: [],
-                sub_total: 0,
-                grand_total: 0,
+                subTotal: 0,
+                grandTotal: 0,
                 discount: 0,
+                profit: 0,
                 paid: false,
+                totalVat: 0,
               },
             });
             toast.success(response.message);
@@ -209,19 +218,30 @@ const Billing = () => {
   const grandTotal = useMemo(() => {
     const total = subTotal - formik.values.discount;
     return total;
-  }, [formik.values.items, formik.values]);
+  }, [formik.values.items, formik.values]); 
+
+  const totalProfit = useMemo(() => {
+    const profit = formik.values.items.reduce(
+      (acc, item) => acc + Number(item.serviceCharge || 0),
+      0,
+    );
+    const excludeVat = vatFromMe ? profit - Number(totalVat || 0) : profit;
+    return excludeVat - Number(formik.values.discount || 0);
+  }, [formik.values.items, vatFromMe, totalVat, formik.values.discount]);
 
   const handleReset = () => {
-    formik.resetForm({
+    formik.resetForm({  
       values: {
         name: '',
         date: '',
-        invoice_number: '',
+        invoiceNumber: '',
         items: [],
-        sub_total: 0,
-        grand_total: 0,
+        subTotal: 0,
+        grandTotal: 0,
         discount: 0,
         paid: false,
+        totalVat: 0,
+        profit: 0,
       },
     });
   };
@@ -234,9 +254,9 @@ const Billing = () => {
   };
 
   useEffect(() => {
-    formik.setFieldValue('sub_total', subTotal);
-    formik.setFieldValue('total_vat', totalVat);
-    formik.setFieldValue('grand_total', grandTotal);
+    formik.setFieldValue('subTotal', subTotal);
+    formik.setFieldValue('totalVat', totalVat);
+    formik.setFieldValue('grandTotal', grandTotal);
   }, [subTotal, grandTotal]);
 
   const { data, error, isLoading } = useGetAllservicesQuery();
@@ -262,8 +282,6 @@ const Billing = () => {
   //   };
   //   getService();
   // }, []);
-
-  console.log('formik', formik.values);
 
   return (
     <>
@@ -364,8 +382,8 @@ const Billing = () => {
                 <input
                   type="number"
                   required
-                  name="invoice_number"
-                  value={formik.values.invoice_number}
+                  name="invoiceNumber"
+                  value={formik.values.invoiceNumber}
                   onChange={formik.handleChange}
                   className="h-8 w-3/6 rounded-md  p-1 font-semibold "
                 />
@@ -613,7 +631,7 @@ const Billing = () => {
                       Sub Total :
                     </td>
                     <td className="py-3 px-6 text-right font-semibold">
-                      {formik?.values?.sub_total?.toFixed(2)} AED
+                      {formik?.values?.subTotal?.toFixed(2)} AED
                     </td>
                   </tr>
                   <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
@@ -624,7 +642,7 @@ const Billing = () => {
                       Total VAT :
                     </td>
                     <td className="py-3 px-6 text-right font-semibold">
-                      {formik?.values?.total_vat?.toFixed(2)} AED
+                      {formik?.values?.totalVat?.toFixed(2)} AED
                     </td>
                   </tr>
 
@@ -650,7 +668,7 @@ const Billing = () => {
                       Grand Total :
                     </td>
                     <td className="py-3 px-6 text-right font-bold">
-                      {formik?.values?.grand_total?.toFixed(2)} AED
+                      {formik?.values?.grandTotal?.toFixed(2)} AED
                     </td>
                   </tr>
                 </tbody>

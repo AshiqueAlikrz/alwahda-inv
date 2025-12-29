@@ -116,18 +116,18 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                 {(handleClick, open) => {
                   return (
                     <React.Fragment>
-                      {/* <NavLink
+                      <NavLink
                         to="/"
                         className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
                           pathname.includes('dashboard') &&
                           'bg-graydark dark:bg-meta-4'
                         }`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          sidebarExpanded
-                            ? handleClick()
-                            : setSidebarExpanded(true);
-                        }}
+                        // onClick={(e) => {
+                        //   e.preventDefault();
+                        //   sidebarExpanded
+                        //     ? handleClick()
+                        //     : setSidebarExpanded(true);
+                        // }}
                       >
                         <svg
                           className="fill-current"
@@ -156,9 +156,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                         </svg>
                         Dashboard
                         <svg
-                          className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current ${
-                            open && 'rotate-180'
-                          }`}
+                          // className={`absolute right-4 top-1/2 -translate-y-1/2 fill-current ${
+                          //   open && 'rotate-180'
+                          // }`}
                           width="20"
                           height="20"
                           viewBox="0 0 20 20"
@@ -172,7 +172,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                             fill=""
                           />
                         </svg>
-                      </NavLink> */}
+                      </NavLink>
                       {/* <div
                         className={`translate transform overflow-hidden ${
                           !open && 'hidden'
@@ -202,7 +202,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
               <li>
                 <NavLink
-                  to="/"
+                  to="/billing"
                   className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-bodydark1 duration-300 ease-in-out hover:bg-graydark dark:hover:bg-meta-4 ${
                     pathname.includes('billing') && 'bg-graydark dark:bg-meta-4'
                   }`}

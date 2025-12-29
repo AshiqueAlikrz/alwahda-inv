@@ -14,40 +14,39 @@ const InvoiceData = () => {
   // const { billingData } = useContext(billingDataContext);
   const invoiceRef = useRef();
   // const [invoice, setInvoice] = useState([]);
-const handleDownload = async () => {
-  const element = invoiceRef.current;
+  const handleDownload = async () => {
+    const element = invoiceRef.current;
 
-  const canvas = await html2canvas(element, {
-    scale: 3,                 // 🔥 Higher scale = sharper text
-    useCORS: true,
-    backgroundColor: "#ffffff",
-  });
+    const canvas = await html2canvas(element, {
+      scale: 3, // 🔥 Higher scale = sharper text
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    });
 
-  const imgData = canvas.toDataURL("image/png"); // Lossless
+    const imgData = canvas.toDataURL('image/png'); // Lossless
 
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "pt",
-    format: "a4",
-  });
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4',
+    });
 
-  const pdfWidth = pdf.internal.pageSize.getWidth();
-  const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-  pdf.addImage(
-    imgData,
-    "PNG",
-    0,
-    0,
-    pdfWidth,
-    pdfHeight,
-    undefined,
-    "SLOW" // Best quality rendering
-  );
+    pdf.addImage(
+      imgData,
+      'PNG',
+      0,
+      0,
+      pdfWidth,
+      pdfHeight,
+      undefined,
+      'SLOW', // Best quality rendering
+    );
 
-  pdf.save("invoice-high-quality.pdf");
-};
-
+    pdf.save('invoice-high-quality.pdf');
+  };
 
   const printPdf = () => {
     window.print();
@@ -216,19 +215,33 @@ const handleDownload = async () => {
                 </tr>
               </tbody>
               <tfoot>
+                {!data.data.vatPaidByCompany && (
+                  <tr>
+                    <td
+                      colSpan={`${showTaxService ? '6' : '4'}`}
+                      className="py-2 px-4 text-right font-bold border border-gray-200"
+                    >
+                      VAT
+                    </td>
+                    <td className="py-2  px-4 font-bold  border-gray-200 text-nowrap">
+                      AED {data?.data?.totalVat?.toFixed(2)}{' '}
+                    </td>
+                  </tr>
+                )}
                 {data?.data?.discount > 0 && (
                   <tr>
                     <td
                       colSpan="6"
                       className="py-2 px-4 text-right font-semibold border border-gray-200"
                     >
-                      Sub total
+                      Sub total<span className='text-xs'> (Including 5% VAT)</span>
                     </td>
                     <td className="py-2 px-4 font-semibold border border-gray-200 text-nowrap">
-                      AED {data?.data?.sub_total?.toFixed(2)}{' '}
+                      AED {data?.data?.subTotal?.toFixed(2)}{' '}
                     </td>
                   </tr>
                 )}
+
                 {data?.data?.discount > 0 && (
                   <tr>
                     <td
@@ -237,7 +250,7 @@ const handleDownload = async () => {
                     >
                       Discount
                     </td>
-                    <td className="py-2 px-4 text-black font-semibold border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 font-semibold border border-gray-200 text-nowrap">
                       AED {data?.data?.discount?.toFixed(2)}{' '}
                     </td>
                   </tr>
@@ -247,21 +260,10 @@ const handleDownload = async () => {
                     colSpan={`${showTaxService ? '6' : '4'}`}
                     className="py-2 px-4 text-right font-bold border border-gray-200"
                   >
-                    VAT
-                  </td>
-                  <td className="py-2  px-4 font-bold border border-gray-200 text-nowrap">
-                    AED {data?.data?.total_vat?.toFixed(2)}{' '}
-                  </td>
-                </tr>
-                <tr>
-                  <td
-                    colSpan={`${showTaxService ? '6' : '4'}`}
-                    className="py-2 px-4 text-right font-bold border border-gray-200"
-                  >
                     Total
                   </td>
                   <td className="py-2  px-4 font-bold border border-gray-200 text-nowrap">
-                    AED {data?.data?.grand_total?.toFixed(2)}{' '}
+                    AED {data?.data?.grandTotal?.toFixed(2)}{' '}
                   </td>
                 </tr>
               </tfoot>

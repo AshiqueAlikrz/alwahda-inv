@@ -124,6 +124,21 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Invoices'],
     }),
+    updateService: builder.mutation<any, { serviceId: string; body: any }>({
+      query: ({ serviceId, body }) => ({
+        url: `/reports/editservice/${serviceId}`,
+        method: 'PATCH',
+        body,
+      }),
+      invalidatesTags: ['Service'],
+    }),
+    deleteService: builder.mutation<any, { serviceId: string }>({
+      query: ({ serviceId }) => ({
+        url: `/reports/deleteservice/${serviceId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Service'],
+    }),
   }),
 });
 
@@ -140,6 +155,8 @@ export const {
   useGetAllServiceQuery,
   useCreateServiceMutation,
   useUpdateInvoiceMutation,
+  useUpdateServiceMutation,
+  useDeleteServiceMutation,
 } = apiSlice;
 
 // export const { setReportData } = todosSlice.actions;

@@ -84,6 +84,14 @@ const columns: TableColumnsType<DataType> = [
     title: 'Profit',
     dataIndex: 'profit',
   },
+  {
+    title: 'VAT',
+    dataIndex: 'vat',
+  },
+  {
+    title: 'Discount',
+    dataIndex: 'discount',
+  },
 
   //   {
   //     title: '',
@@ -112,7 +120,7 @@ const Calendar = () => {
 
   const { data, error, isLoading } = useGetMonthlyReportsQuery();
 
-  console.log('data, error, isLoading', data, error, isLoading); 
+  console.log('data, error, isLoading', data, error, isLoading);
 
   // useEffect(() => {
   //   if (!data?.data?.length) {
@@ -131,6 +139,8 @@ const Calendar = () => {
           date: invoice.month + '/' + invoice.year,
           expense: invoice.expense,
           profit: invoice.profit,
+          vat: invoice.vat ? invoice.vat : 0,
+          discount: invoice.discount ? invoice.discount : 0,
           //   paid: invoice?.paid,
           //   edit: <IoMdMore />,
           //   // tax: invoice?.items[0].tax,
@@ -150,12 +160,12 @@ const Calendar = () => {
       loading={isLoading}
       columns={columns}
       dataSource={formattedData}
-    //   onChange={onChange}
-    //   onRow={(record) => ({
-    //     onClick: () => {
-    //       navigate(`/report/${record.id}`);
-    //     },
-    //   })}
+      //   onChange={onChange}
+      //   onRow={(record) => ({
+      //     onClick: () => {
+      //       navigate(`/report/${record.id}`);
+      //     },
+      //   })}
     />
   );
 };

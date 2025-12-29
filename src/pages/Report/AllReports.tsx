@@ -39,6 +39,7 @@ export interface DataType {
   name: string;
   items: Item[];
   sub_total: number;
+  vat: number;
   grand_total: number;
   paid: boolean;
   id: string;
@@ -109,8 +110,18 @@ const Calendar = () => {
       dataIndex: 'discount',
     },
     {
+      title: ' VAT',
+      dataIndex: 'vat',
+      className: 'w-28',
+    },
+    {
       title: 'Grand Total',
       dataIndex: 'grand_total',
+    },
+    {
+      title: ' Profit',
+      dataIndex: 'profit',
+      className: 'w-28',
     },
     {
       title: 'Paid',
@@ -140,8 +151,17 @@ const Calendar = () => {
         invoice_number: invoice.invoice_number,
         date: moment(invoice.date).format('DD-MM-YYYY'),
         name: invoice.name,
-        sub_total: invoice.sub_total,
-        grand_total: invoice.grand_total,
+        vat: (
+          <span>
+            {invoice.totalVat ? invoice.totalVat : '-'}{" "}
+            {invoice.vatPaidByCompany && (
+              <span className="text-xs text-green-500">(company)</span>
+            )}
+          </span>
+        ),
+        sub_total: invoice.subTotal,
+        profit: invoice.profit,
+        grand_total: invoice.grandTotal,
         discount: invoice.discount,
         paid: invoice.paid,
       }))

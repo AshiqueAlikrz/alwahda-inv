@@ -11,9 +11,11 @@ import useReportApi from '../../api/report';
 import { useSelector } from 'react-redux';
 import {
   useCreateServiceMutation,
+  useDeleteServiceMutation,
   useGetAllServiceQuery,
   useGetUsersByIdQuery,
   useGetUsersQuery,
+  useUpdateServiceMutation,
 } from '../../store/reportSlice';
 import ButtonCard from '../../components/buttonCard';
 import { toast } from 'react-toastify';
@@ -36,79 +38,11 @@ export interface DataType {
   grand_total: number;
   paid: boolean;
   id: string;
+  price: number;
 }
 const handleMenuClick = (e: any) => {
-  console.log('eee', e);
   // Handle your edit or delete action here
 };
-const handleDelete = async () => {
-  await axios.delete('http://localhost:8081/api/reports/invoice/:invoiceId');
-  console.log('Task deleted'); // Handle the delete action here
-};
-
-const menu = (
-  <Menu
-    onClick={(e) => {
-      e.domEvent.stopPropagation();
-      handleMenuClick(e); // Call the function properly
-    }}
-  >
-    <Menu.Item key="edit">Edit</Menu.Item>
-    <Menu.Item key="delete">
-      {' '}
-      <Popconfirm
-        title="Delete the task"
-        description="Are you sure to delete this task?"
-        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-        onConfirm={handleDelete}
-        // onCancel={handleCancel}
-      >
-        Delete
-      </Popconfirm>{' '}
-    </Menu.Item>
-  </Menu>
-);
-
-const columns: TableColumnsType<DataType> = [
-  //   {
-  //     title: 'Invoice Number',
-  //     dataIndex: 'invoice_number',
-  //   },
-  //   {
-  //     title: 'Date',
-  //     dataIndex: 'date',
-  //   },
-  {
-    title: 'Name',
-    dataIndex: 'name',
-  },
-  {
-    title: 'Price',
-    dataIndex: 'price',
-  },
-  //   {
-  //     title: 'Discount',
-  //     dataIndex: 'discount',
-  //   },
-  //   {
-  //     title: 'Grand Total',
-  //     dataIndex: 'grand_total',
-  //   },
-  //   {
-  //     title: 'Paid',
-  //     dataIndex: 'paid',
-  //     render: (paid) => (paid ? 'Yes' : 'No'), // Renders as "Yes" or "No"
-  //   },
-  // {
-  //   title: '',
-  //   dataIndex: 'edit',
-  //   render: (_, record) => (
-  //     <Dropdown overlay={menu} trigger={['click']}>
-  //       <Button icon={<IoMdMore />} onClick={(e) => e.stopPropagation()} />
-  //     </Dropdown>
-  //   ),
-  // },
-];
 
 const onChange: TableProps<DataType>['onChange'] = (
   pagination,
@@ -120,30 +54,94 @@ const onChange: TableProps<DataType>['onChange'] = (
 };
 
 const Service = () => {
-  // const allInvoices = useSelector((state: any) => state.report.reportData);
   const navigate = useNavigate();
-  // const { getInvoice } = useReportApi();
+
+  const [mode, setMode] = useState('Add');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [serviceData, setServiceData] = useState({
+    name: '',
+    price: 0,
+  });
+  const [serviceId, setServiceId] = useState('');
+
+  const handleDelete = async () => {
+    const response = await deleteService({ serviceId });
+    toast.success(response.data.message);
+  };
+
+  const menu = (
+    <Menu
+      onClick={(e) => {
+        e.domEvent.stopPropagation();
+        handleMenuClick(e); // Call the function properly
+      }}
+    >
+      <Menu.Item
+        key="edit"
+        onClick={(e) => {
+          setIsModalOpen(true);
+        }}
+      >
+        Edit
+      </Menu.Item>
+      <Menu.Item key="delete">
+        <Popconfirm
+          title="Delete the task"
+          description="Are you sure to delete this task?"
+          icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
+          onConfirm={handleDelete}
+          // onCancel={handleCancel}
+        >
+          Delete
+        </Popconfirm>{' '}
+      </Menu.Item>
+    </Menu>
+  );
+
+  const columns: TableColumnsType<DataType> = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+    },
+    {
+      title: 'Price (AED)',
+      dataIndex: 'price',
+    },
+
+    {
+      title: '',
+      dataIndex: 'edit',
+      render: (_, record) => (
+        <Dropdown overlay={menu} trigger={['click']}>
+          <Button
+            icon={<IoMdMore />}
+            onClick={(e) => {
+              console.log('record', record);
+              e.stopPropagation();
+              setMode('Edit');
+              setServiceData({ name: record.name, price: record.price });
+              setServiceId(record.id);
+            }}
+          />
+        </Dropdown>
+      ),
+    },
+  ];
 
   const { data, error, isLoading } = useGetAllServiceQuery();
   const [createService] = useCreateServiceMutation();
+  const [updateService] = useUpdateServiceMutation();
+  const [deleteService] = useDeleteServiceMutation();
 
-  console.log('data, error, isLoading', data, error, isLoading);
-
-  // useEffect(() => {
-  //   if (!data?.data?.length) {
-  //     fetchReport();
-  //   }
-  // }, []);
-
-  // const fetchReport = async () => {
-  //   await getInvoice();
-  // };
+  if (error) {
+    toast.error('Error fetching services');
+  }
 
   const formattedData = data
     ? data?.data?.map((invoice: any, index: number) => {
         return {
           key: index,
-          //   id: invoice._id,
+          id: invoice._id,
           //   invoice_number: invoice.invoice_number,
           //   date: moment(invoice.date).format('DD-MM-YYYY'),
           name: invoice.name,
@@ -164,26 +162,27 @@ const Service = () => {
       })
     : [];
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   const showModal = () => {
+    setMode('Add');
+    setServiceData({ name: '', price: 0 });
     setIsModalOpen(true);
   };
 
   const handleOk = async () => {
     setIsModalOpen(false);
-    const response = await createService(serviceData).unwrap();
-    toast.success(response.message);
+    if (mode === 'Edit') {
+      const response = await updateService({ serviceId, body: serviceData });
+      console.log('response', response);
+      toast.success(response.data.message);
+    } else {
+      const response = await createService(serviceData).unwrap();
+      toast.success(response.message);
+    }
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
   };
-
-  const [serviceData, setServiceData] = useState({
-    name: '',
-    price: 0,
-  });
 
   const onChange = (e: any) => {
     setServiceData({
@@ -193,7 +192,6 @@ const Service = () => {
     });
   };
 
-  console.log(serviceData);
   return (
     <div className="flex flex-col gap-3">
       <div className="flex w-full justify-end">
@@ -206,15 +204,13 @@ const Service = () => {
         columns={columns}
         dataSource={formattedData}
         onChange={onChange}
-        //   onRow={(record) => ({
-        //     onClick: () => {
-        //       navigate(`/report/${record.id}`);
-        //     },
-        //   })}
+        onRow={(record) => ({
+          onClick: () => {},
+        })}
       />
 
       <Modal
-        title="Basic Modal"
+        title={`${mode} Service`}
         closable={{ 'aria-label': 'Custom Close Button' }}
         open={isModalOpen}
         onOk={handleOk}
@@ -228,6 +224,7 @@ const Service = () => {
               onChange={onChange}
               name="name"
               placeholder="Service Name"
+              value={serviceData.name}
             />
           </div>
           <div className="flex gap-1">
@@ -237,6 +234,7 @@ const Service = () => {
               type="number"
               placeholder="price"
               name="price"
+              value={serviceData.price}
             />
           </div>
         </div>
