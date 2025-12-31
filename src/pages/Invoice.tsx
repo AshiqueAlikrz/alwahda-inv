@@ -45,7 +45,7 @@ const InvoiceData = () => {
       'SLOW', // Best quality rendering
     );
 
-    pdf.save('invoice-high-quality.pdf');
+    pdf.save(`${data?.data?.name}`);
   };
 
   const printPdf = () => {
@@ -84,7 +84,7 @@ const InvoiceData = () => {
           <Loading />
         </div>
       ) : (
-        <div className="m-8">
+        <div className="m-8 h-auto">
           <style>
             {`
           @media print {
@@ -98,14 +98,12 @@ const InvoiceData = () => {
             ref={invoiceRef}
             className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg "
           >
-            <div className="flex w-full h-24  bg-black">
+            <div className="flex w-full bg-black">
               <img src={alwahdaText} className="w-full h-full object-cover" />
             </div>
-            <div className="flex justify-between items-center mt-6">
+            <div className=" flex justify-between items-center mt-6">
               <div>
-                <h2 className="text-gray-800 text-2xl font-bold text-left">
-                  Invoice
-                </h2>
+                <h2 className="text-2xl font-bold text-left">Tax Invoice</h2>
                 <p className="text-left font-medium">
                   Invoice No:{' '}
                   <span className="text-black">
@@ -120,10 +118,13 @@ const InvoiceData = () => {
                   )}`}</span>
                 </p>
               </div>
-              <div className="flex flex-col items-end w-4/6 h-20 ">
-                <h3 className="text-gray-600 text-lg font-semibold mr-5 ">
-                  Bill To:
-                </h3>
+              <div className="flex flex-col h-auto text-lg font-medium">
+                <h1 className="text-primary">Tax Invoice - فاتورة ضريبية</h1>
+                <hr className="text-primary mt-3" />
+                <span className="text-primary">TRN : 100038138200003</span>
+              </div>
+              <div className="flex flex-col items-end  h-20 ">
+                <h3 className=" text-lg font-semibold mr-5 ">Bill To:</h3>
                 <p className=" font-medium text-lg text-auto text-black">
                   {data?.data?.name}
                 </p>
@@ -133,38 +134,32 @@ const InvoiceData = () => {
 
             <div className="mb-6"></div>
 
-            <table className="min-w-full bg-white border border-gray-200">
+            <table className="min-w-full bg-white border">
               <thead>
                 <tr>
-                  <th className="py-2 px-4 border border-gray-200">#</th>
-                  <th className="py-2 px-10 border border-gray-200">
-                    Description
-                  </th>
-                  <th className="py-2 px-4 border border-gray-200">Quantity</th>
-                  <th className="py-2 px-4 border border-gray-200">
-                    Unit Price
-                  </th>
+                  <th className="py-2 px-4 border ">#</th>
+                  <th className="py-2 px-10 border">Description</th>
+                  <th className="py-2 px-4 border ">Quantity</th>
+                  <th className="py-2 px-4 border">Unit Price</th>
                   {showTaxService && (
-                    <th className="py-2 px-4 border border-gray-200">
-                      Service Chr.{' '}
-                    </th>
+                    <th className="py-2 px-4 border">Service Chr. </th>
                   )}
                   {showTaxService && (
-                    <th className="py-2 px-4 border border-gray-200">Tax </th>
+                    <th className="py-2 px-4 border ">Tax </th>
                   )}
-                  <th className="py-2 px-4 border border-gray-200">Total</th>
+                  <th className="py-2 px-4 border">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {data?.data?.items?.map((item: any, index: any) => (
                   <tr key={index}>
-                    <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 text-center font-medium border  text-nowrap">
                       {index + 1}
                     </td>
-                    <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 text-center font-medium border  text-nowrap">
                       {item.description.name}
                     </td>
-                    <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 text-center font-medium border text-nowrap">
                       {item.quantity}
                     </td>
                     <td className="py-2 px-4 text-center   font-medium border  text-nowrap">
@@ -173,11 +168,11 @@ const InvoiceData = () => {
 
                     {showTaxService && (
                       <>
-                        <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
+                        <td className="py-2 px-4 text-center font-medium border text-nowrap">
                           {item.serviceCharge?.toFixed(2)}
                         </td>
 
-                        <td className="py-2 px-4 text-center font-medium border border-gray-200 text-nowrap">
+                        <td className="py-2 px-4 text-center font-medium border text-nowrap">
                           {item.tax?.toFixed(2)}
                         </td>
                       </>
@@ -188,55 +183,54 @@ const InvoiceData = () => {
                   </tr>
                 ))}
                 <tr>
-                  <td className="py-4 px-4 border border-gray-200"></td>
-                  <td className="py-4 px-4 border border-gray-200"></td>
-                  <td className="py-4 px-4 border border-gray-200"></td>
-                  <td className="py-4 px-4 border border-gray-200"></td>
-                  <td className="py-4 px-4 border border-gray-200"></td>
+                  <td className="py-4 px-4 border "></td>
+                  <td className="py-4 px-4 border "></td>
+                  <td className="py-4 px-4 border "></td>
+                  <td className="py-4 px-4 border "></td>
+                  <td className="py-4 px-4 border "></td>
                   {showTaxService && (
                     <>
-                      <td className="py-4 px-4 border border-gray-200"></td>
-                      <td className="py-4 px-4 border border-gray-200"></td>
+                      <td className="py-4 px-4 border"></td>
+                      <td className="py-4 px-4 border"></td>
                     </>
                   )}
                 </tr>
                 <tr>
-                  <td className="py-4 px-4 border border-gray-200"></td>
-                  <td className="py-4 px-4 border border-gray-200"></td>
-                  <td className="py-4 px-4 border border-gray-200"></td>
-                  <td className="py-4 px-4 border border-gray-200"></td>
-                  <td className="py-4 px-4 border border-gray-200"></td>
+                  <td className="py-4 px-4 border"></td>
+                  <td className="py-4 px-4 border"></td>
+                  <td className="py-4 px-4 border"></td>
+                  <td className="py-4 px-4 border"></td>
+                  <td className="py-4 px-4 border"></td>
                   {showTaxService && (
                     <>
-                      <td className="py-4 px-4 border border-gray-200"></td>
-                      <td className="py-4 px-4 border border-gray-200"></td>
+                      <td className="py-4 px-4 border"></td>
+                      <td className="py-4 px-4 border"></td>
                     </>
                   )}
                 </tr>
               </tbody>
               <tfoot>
-                {!data.data.vatPaidByCompany && (
-                  <tr>
-                    <td
-                      colSpan={`${showTaxService ? '6' : '4'}`}
-                      className="py-2 px-4 text-right font-bold border border-gray-200"
-                    >
-                      VAT
-                    </td>
-                    <td className="py-2  px-4 font-bold  border-gray-200 text-nowrap">
-                      AED {data?.data?.totalVat?.toFixed(2)}{' '}
-                    </td>
-                  </tr>
-                )}
+                <tr>
+                  <td
+                    colSpan={`${showTaxService ? '6' : '4'}`}
+                    className="py-2 px-4 text-right font-bold border"
+                  >
+                    VAT
+                  </td>
+                  <td className="py-2  px-4 font-bold text-nowrap">
+                    AED {data?.data?.totalVat?.toFixed(2) || 0}{' '}
+                  </td>
+                </tr>
                 {data?.data?.discount > 0 && (
                   <tr>
                     <td
                       colSpan="6"
-                      className="py-2 px-4 text-right font-semibold border border-gray-200"
+                      className="py-2 px-4 text-right font-semibold border"
                     >
-                      Sub total<span className='text-xs'> (Including 5% VAT)</span>
+                      Sub total
+                      <span className="text-xs"> (Including 5% VAT)</span>
                     </td>
-                    <td className="py-2 px-4 font-semibold border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 font-semibold border text-nowrap">
                       AED {data?.data?.subTotal?.toFixed(2)}{' '}
                     </td>
                   </tr>
@@ -246,11 +240,11 @@ const InvoiceData = () => {
                   <tr>
                     <td
                       colSpan={`${showTaxService ? '6' : '4'}`}
-                      className="py-2 px-4 text-right font-semibold border border-gray-200"
+                      className="py-2 px-4 text-right font-semibold border"
                     >
                       Discount
                     </td>
-                    <td className="py-2 px-4 font-semibold border border-gray-200 text-nowrap">
+                    <td className="py-2 px-4 font-semibold border text-nowrap">
                       AED {data?.data?.discount?.toFixed(2)}{' '}
                     </td>
                   </tr>
@@ -258,11 +252,11 @@ const InvoiceData = () => {
                 <tr>
                   <td
                     colSpan={`${showTaxService ? '6' : '4'}`}
-                    className="py-2 px-4 text-right font-bold border border-gray-200"
+                    className="py-2 px-4 text-right font-bold border"
                   >
                     Total
                   </td>
-                  <td className="py-2  px-4 font-bold border border-gray-200 text-nowrap">
+                  <td className="py-2  px-4 font-bold border text-nowrap">
                     AED {data?.data?.grandTotal?.toFixed(2)}{' '}
                   </td>
                 </tr>

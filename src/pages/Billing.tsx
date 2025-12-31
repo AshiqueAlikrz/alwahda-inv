@@ -218,7 +218,7 @@ const Billing = () => {
   const grandTotal = useMemo(() => {
     const total = subTotal - formik.values.discount;
     return total;
-  }, [formik.values.items, formik.values]); 
+  }, [formik.values.items, formik.values]);
 
   const totalProfit = useMemo(() => {
     const profit = formik.values.items.reduce(
@@ -230,7 +230,7 @@ const Billing = () => {
   }, [formik.values.items, vatFromMe, totalVat, formik.values.discount]);
 
   const handleReset = () => {
-    formik.resetForm({  
+    formik.resetForm({
       values: {
         name: '',
         date: '',
