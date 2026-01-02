@@ -153,15 +153,15 @@ const Calendar = () => {
         name: invoice.name,
         vat: (
           <span>
-            {invoice.totalVat ? invoice.totalVat : '-'}{" "}
+            {invoice.totalVat ? invoice.totalVat.toFixed(2) : '-'}{' '}
             {invoice.vatPaidByCompany && (
               <span className="text-xs text-green-500">(company)</span>
             )}
           </span>
         ),
-        sub_total: invoice.subTotal,
-        profit: invoice.profit,
-        grand_total: invoice.grandTotal,
+        sub_total: invoice.subTotal.toFixed(2),
+        profit: invoice.profit.toFixed(2),
+        grand_total: invoice.grandTotal.toFixed(2),
         discount: invoice.discount,
         paid: invoice.paid,
       }))

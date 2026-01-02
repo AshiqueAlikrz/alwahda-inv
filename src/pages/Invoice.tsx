@@ -1,10 +1,8 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { billingDataContext } from '../contexts/DataContext';
 import alwahdaText from '../assets/alwahda.png';
 import moment from 'moment';
-import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { useGetInvoiceByIdQuery } from '../store/reportSlice';
 import Loading from '../components/Loading';
@@ -77,6 +75,7 @@ const InvoiceData = () => {
   const showTaxService = data?.data?.items?.some(
     (item: any) => item?.serviceCharge > 0 && item?.tax > 0,
   );
+  
   return (
     <>
       {isLoading ? (
@@ -111,7 +110,7 @@ const InvoiceData = () => {
                     {data?.data?.name}
                   </span>
                 </p>
-                {data?.data?.contact && (
+                {data?.data?.contact ? (
                   <p className="text-left font-semibold text-lg">
                     Contact:{' '}
                     <span className="text-black font-medium">
@@ -119,8 +118,10 @@ const InvoiceData = () => {
                       {data?.data?.contact}
                     </span>
                   </p>
+                ) : (
+                  ''
                 )}
-                {data?.data?.trn && (
+                {data?.data?.trn ? (
                   <p className="text-left font-semibold text-lg">
                     TRN:{' '}
                     <span className="text-black font-medium">
@@ -128,6 +129,8 @@ const InvoiceData = () => {
                       {data?.data?.trn}
                     </span>
                   </p>
+                ) : (
+                  ''
                 )}
                 {data?.data?.address && (
                   <p className="text-left font-semibold text-lg">
@@ -139,6 +142,7 @@ const InvoiceData = () => {
                   </p>
                 )}
               </div>
+              <h3 className="text-xl font-bold text-primary">Tax Invoice</h3>
 
               <div className="flex flex-col items-end  h-20 ">
                 <h3 className=" text-lg font-semibold  ">

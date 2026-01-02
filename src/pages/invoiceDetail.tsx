@@ -142,8 +142,8 @@ const InvoiceDetail = () => {
           quantity: items.quantity,
           rate: items.rate,
           total: items.total,
-          tax: items.tax,
-          serviceCharge: items.serviceCharge,
+          tax: items.tax.toFixed(2),
+          serviceCharge: items.serviceCharge.toFixed(2),
           _id: items._id,
         };
       })

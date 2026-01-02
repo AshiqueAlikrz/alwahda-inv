@@ -9,8 +9,8 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 import useReportApi from '../../api/report';
 import { useSelector } from 'react-redux';
 import {
-    useGetDailyReportsQuery,
-//   useGetDailyReportQuery,
+  useGetDailyReportsQuery,
+  //   useGetDailyReportQuery,
   useGetUsersByIdQuery,
   useGetUsersQuery,
 } from '../../store/reportSlice';
@@ -115,7 +115,7 @@ const columns: TableColumnsType<DataType> = [
 
 const Calendar = () => {
   // const allInvoices = useSelector((state: any) => state.report.reportData);
-//   const navigate = useNavigate();
+  //   const navigate = useNavigate();
   // const { getInvoice } = useReportApi();
 
   const { data, error, isLoading } = useGetDailyReportsQuery();
@@ -137,9 +137,9 @@ const Calendar = () => {
         return {
           id: index + 1,
           date: moment(invoice.date).format('DD-MM-YYYY'),
-          expense: invoice.expense,
-          profit: invoice.profit,
-          vat: invoice.vat ? invoice.vat : 0,
+          expense: invoice.expense.toFixed(2),
+          profit: invoice.profit.toFixed(2),
+          vat: invoice.vat ? invoice.vat.toFixed(2) : 0,
           discount: invoice.discount ? invoice.discount : 0,
           //   paid: invoice?.paid,
           //   edit: <IoMdMore />,
@@ -161,11 +161,11 @@ const Calendar = () => {
       columns={columns}
       dataSource={formattedData}
       //   onChange={onChange}
-    //   onRow={(record) => ({
-    //     onClick: () => {
-    //       navigate(`/report/${record.id}`);
-    //     },
-    //   })}
+      //   onRow={(record) => ({
+      //     onClick: () => {
+      //       navigate(`/report/${record.id}`);
+      //     },
+      //   })}
     />
   );
 };

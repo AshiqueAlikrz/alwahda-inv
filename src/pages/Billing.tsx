@@ -198,7 +198,9 @@ const Billing = () => {
         : (item.quantity || 0) * (item.rate || 0) +
           parseFloat(((item.serviceCharge || 0) + (item.tax || 0)).toFixed(2));
 
-      const tax = (item.serviceCharge / 100) * 5;
+      const tax = vatFromMe
+        ? (item.serviceCharge * 5) / 105
+        : (item.serviceCharge * 5) / 100;
       formik.setFieldValue(`items[${index}].total`, formattedTotal);
       formik.setFieldValue(`items[${index}].tax`, tax);
 
