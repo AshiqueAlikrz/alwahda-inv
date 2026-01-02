@@ -103,31 +103,65 @@ const InvoiceData = () => {
             </div>
             <div className=" flex justify-between items-center mt-6">
               <div>
-                <h2 className="text-2xl font-bold text-left">Tax Invoice</h2>
-                <p className="text-left font-medium">
-                  Invoice No:{' '}
-                  <span className="text-black">
-                    {data?.data?.invoice_number}
+                {/* <h2 className="text-2xl font-bold text-left">Tax Invoice</h2> */}
+                <p className="text-left font-bold text-lg">
+                  Customer:{' '}
+                  <span className="text-black font-medium">
+                    {' '}
+                    {data?.data?.name}
                   </span>
                 </p>
-                <p className="text-left font-medium">
+                {data?.data?.contact && (
+                  <p className="text-left font-semibold text-lg">
+                    Contact:{' '}
+                    <span className="text-black font-medium">
+                      {' '}
+                      {data?.data?.contact}
+                    </span>
+                  </p>
+                )}
+                {data?.data?.trn && (
+                  <p className="text-left font-semibold text-lg">
+                    TRN:{' '}
+                    <span className="text-black font-medium">
+                      {' '}
+                      {data?.data?.trn}
+                    </span>
+                  </p>
+                )}
+                {data?.data?.address && (
+                  <p className="text-left font-semibold text-lg">
+                    Address:{' '}
+                    <span className="text-black font-medium">
+                      {' '}
+                      {data?.data?.address}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col items-end  h-20 ">
+                <h3 className=" text-lg font-semibold  ">
+                  Invoice No:
+                  <span className=" font-medium text-lg text-auto text-black">
+                    {' '}
+                    {data?.data?.invoice_number}
+                  </span>
+                </h3>
+                <p className="text-left font-semibold text-lg">
                   Date :{' '}
-                  <span className="text-black">{`${formatDate(
+                  <span className="text-black font-medium">{`${formatDate(
                     data?.data?.date,
                     'DD-MM-YYYY',
                   )}`}</span>
                 </p>
-              </div>
-              <div className="flex flex-col h-auto text-lg font-medium">
-                <h1 className="text-primary">Tax Invoice - فاتورة ضريبية</h1>
-                <hr className="text-primary mt-3" />
-                <span className="text-primary">TRN : 100038138200003</span>
-              </div>
-              <div className="flex flex-col items-end  h-20 ">
-                <h3 className=" text-lg font-semibold mr-5 ">Bill To:</h3>
-                <p className=" font-medium text-lg text-auto text-black">
-                  {data?.data?.name}
+                <p className="text-left font-semibold text-lg">
+                  TRN :{' '}
+                  <span className="text-black font-medium">
+                    100038138200003
+                  </span>
                 </p>
+
                 {/* <p className="text-gray-600 ">Bur Dubai</p> */}
               </div>
             </div>
@@ -263,7 +297,7 @@ const InvoiceData = () => {
               </tfoot>
             </table>
 
-            <div className="flex justify-between items-center h-8 p-3 bg-blue-800">
+            <div className="font-sans flex justify-between items-center h-8 p-3 bg-blue-800">
               <p className="text-white font-semibold flex mb-3">
                 {/* <GiWorld className="m-1 size-4" /> */}
                 www.alwahdaonline.com

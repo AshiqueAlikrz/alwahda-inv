@@ -35,6 +35,7 @@ const Billing = () => {
   const initialBillingData = {
     name: '',
     date: '',
+    trn: 0,
     items: [
       {
         id: 0,
@@ -54,6 +55,8 @@ const Billing = () => {
     discount: 0,
     profit: 0,
     paid: false,
+    contact: 0,
+    address: '',
   };
   // const { billingData, setBillingData, invoice, setInvoice } =
   //   useContext(billingDataContext);
@@ -151,6 +154,7 @@ const Billing = () => {
             formik.resetForm({
               values: {
                 name: '',
+                trn: 0,
                 date: '',
                 invoiceNumber: '',
                 items: [],
@@ -160,6 +164,8 @@ const Billing = () => {
                 profit: 0,
                 paid: false,
                 totalVat: 0,
+                contact: 0,
+                address: '',
               },
             });
             toast.success(response.message);
@@ -234,6 +240,7 @@ const Billing = () => {
       values: {
         name: '',
         date: '',
+        trn: 0,
         invoiceNumber: '',
         items: [],
         subTotal: 0,
@@ -242,6 +249,8 @@ const Billing = () => {
         paid: false,
         totalVat: 0,
         profit: 0,
+        contact: 0,
+        address: '',
       },
     });
   };
@@ -282,6 +291,8 @@ const Billing = () => {
   //   };
   //   getService();
   // }, []);
+
+  console.log('formik', formik.values);
 
   return (
     <>
@@ -363,8 +374,8 @@ const Billing = () => {
       >
         <div className="container mx-auto ">
           <form>
-            <div className="flex justify-between h-9 w-full bg-slate-100">
-              <div className="flex items-center gap-2 h-9 w-3/6">
+            <div className="grid grid-cols-3 gap-3 justify-between w-full bg-slate-100 p-3">
+              <div className="flex items-center gap-2 h-9 w-full">
                 <h2 className="font-semibold text-base mx-1">Name :</h2>
                 <input
                   type="text"
@@ -374,23 +385,47 @@ const Billing = () => {
                   onChange={formik.handleChange}
                   className="h-8 w-4/6 rounded-md  p-1 font-semibold "
                 />
-                {/* {formik.errors.name && formik.touched.name ? <div className="text-red-600">{formik.errors.name}</div> : null} */}
+                {formik.errors.name && formik.touched.name ? (
+                  <div className="text-red-600">{formik.errors.name}</div>
+                ) : null}
               </div>
-              {/* 
-              <div className="flex items-center gap-2 h-9 w-3/6">
-                <h2 className="font-semibold text-base mx-1">Invoice :</h2>
+
+              <div className="flex items-center gap-2 h-9 w-full">
+                <h2 className="font-semibold text-base mx-1">Contact :</h2>
                 <input
                   type="number"
                   required
-                  name="invoiceNumber"
-                  value={formik.values.invoiceNumber}
+                  name="contact"
+                  value={formik.values.contact}
                   onChange={formik.handleChange}
                   className="h-8 w-3/6 rounded-md  p-1 font-semibold "
                 />
-              </div> */}
+              </div>
+              <div className="flex items-center gap-2 h-9 w-full">
+                <h2 className="font-semibold text-base mx-1">Address :</h2>
+                <input
+                  type="text"
+                  required
+                  name="address"
+                  value={formik.values.address}
+                  onChange={formik.handleChange}
+                  className="h-8 w-3/6 rounded-md  p-1 font-semibold "
+                />
+              </div>
+              <div className="flex items-center gap-2 h-9 w-full">
+                <h2 className="font-semibold text-base mx-1">TRN :</h2>
+                <input
+                  type="number"
+                  required
+                  name="trn"
+                  value={formik.values.trn}
+                  onChange={formik.handleChange}
+                  className="h-8 w-3/6 rounded-md  p-1 font-semibold "
+                />
+              </div>
               {/* {formik.errors.invoice && formik.touched.invoice ? <div className="text-red-600">{formik.errors.invoice}</div> : null} */}
 
-              <div className="flex justify-end items-center gap-2 h-9 w-2/6">
+              <div className="flex items-center gap-2 h-9 w-full">
                 <h2 className="font-semibold text-base">Date :</h2>
                 <div className="flex space-x-4">
                   <div className="w-full justify-center items-center flex">
@@ -402,20 +437,16 @@ const Billing = () => {
                       onChange={formik.handleChange}
                       className="relative w-full h-8 outline-none text-gray-500 rounded-lg p-2.5 focus:shadow-md mx-2 font-semibold"
                     />
-                    {/* {formik.errors.date && formik.touched.date ? <div className="text-red-600">{formik.errors.date}</div> : null} */}
+                    {formik.errors.date && formik.touched.date ? (
+                      <div className="text-red-600">{formik.errors.date}</div>
+                    ) : null}
                   </div>
                 </div>
               </div>
             </div>
             <div className="w-full h-6 flex justify-between">
-              {formik.errors.name && formik.touched.name ? (
-                <div className="text-red-600">{formik.errors.name}</div>
-              ) : null}
               {formik.errors.invoice && formik.touched.invoice ? (
                 <div className="text-red-600">{formik.errors.invoice}</div>
-              ) : null}
-              {formik.errors.date && formik.touched.date ? (
-                <div className="text-red-600">{formik.errors.date}</div>
               ) : null}
             </div>
             <div className="w-full h-4 font-bold text-xs gap-2 flex items-center justify-end">
