@@ -118,7 +118,7 @@ const InvoiceData = () => {
                     Contact:{' '}
                     <span className="text-black font-medium">
                       {' '}
-                     +971 {data?.data?.contact}
+                      +971 {data?.data?.contact}
                     </span>
                   </p>
                 ) : (
@@ -158,7 +158,7 @@ const InvoiceData = () => {
                   Date :{' '}
                   <span className="text-black font-medium">{`${formatDate(
                     data?.data?.date,
-                    'DD-MM-YYYY',
+                    'DD/MM/YYYY',
                   )}`}</span>
                 </p>
                 <p className="text-left font-semibold text-lg">
