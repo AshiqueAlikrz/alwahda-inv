@@ -75,7 +75,7 @@ const InvoiceData = () => {
   const showTaxService = data?.data?.items?.some(
     (item: any) => item?.serviceCharge > 0 && item?.tax > 0,
   );
-  
+
   return (
     <>
       {isLoading ? (
@@ -100,9 +100,12 @@ const InvoiceData = () => {
             <div className="flex w-full bg-black">
               <img src={alwahdaText} className="w-full h-full object-cover" />
             </div>
+            <h3 className="text-2xl font-bold text-primary mt-2 text-center">
+              Tax Invoice
+            </h3>
+
             <div className=" flex justify-between items-center mt-6">
               <div>
-                {/* <h2 className="text-2xl font-bold text-left">Tax Invoice</h2> */}
                 <p className="text-left font-bold text-lg">
                   Customer:{' '}
                   <span className="text-black font-medium">
@@ -115,7 +118,7 @@ const InvoiceData = () => {
                     Contact:{' '}
                     <span className="text-black font-medium">
                       {' '}
-                      {data?.data?.contact}
+                     +971 {data?.data?.contact}
                     </span>
                   </p>
                 ) : (
@@ -142,7 +145,6 @@ const InvoiceData = () => {
                   </p>
                 )}
               </div>
-              <h3 className="text-xl font-bold text-primary">Tax Invoice</h3>
 
               <div className="flex flex-col items-end  h-20 ">
                 <h3 className=" text-lg font-semibold  ">
