@@ -1,12 +1,22 @@
-import React, { useState, ReactNode } from 'react';
+import React, { useState, ReactNode, useEffect } from 'react';
 import Header from '../components/Header/index';
 import Sidebar from '../components/Sidebar/index';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Outlet } from 'react-router-dom';
 
 const DefaultLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { pathname } = useLocation();
+
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem('token');
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/auth/signin');
+    }
+  }, [token]);
 
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">

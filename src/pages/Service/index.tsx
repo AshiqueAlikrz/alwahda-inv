@@ -172,7 +172,6 @@ const Service = () => {
     setIsModalOpen(false);
     if (mode === 'Edit') {
       const response = await updateService({ serviceId, body: serviceData });
-      console.log('response', response);
       toast.success(response.data.message);
     } else {
       const response = await createService(serviceData).unwrap();

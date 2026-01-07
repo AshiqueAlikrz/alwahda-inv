@@ -1,12 +1,18 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-
 const environment = import.meta.env;
 
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: environment.VITE_DOMAIN_URL,
+      prepareHeaders: (headers) => {
+      const token = localStorage.getItem('token'); // get token
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`); // attach token
+      }
+      return headers;
+    },
   }),
   tagTypes: ['Invoices', 'Service', 'userItems'],
   endpoints: (builder) => ({

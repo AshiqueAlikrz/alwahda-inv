@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -6,9 +6,19 @@ import LogoDark from '../../images/logo/logo-dark.svg';
 import Logo from '../../images/logo/logo.svg';
 import { useSignupMutation } from '../../store/authSlice';
 import { toast } from 'react-toastify';
+import { Select } from 'antd';
+import { useGetAllCompaniesQuery } from '../../store/companySlice';
+// import { useGetAllCompaniesQuery } from '../../store/companySlice';
 
 const SignUp: React.FC = () => {
+  const { Option } = Select;
+
   const [signup, { isLoading }] = useSignupMutation();
+  const { data, error } = useGetAllCompaniesQuery();
+  const [selectedCompany, setSelectedCompany] = useState({
+    companyName: '',
+    _id: '',
+  });
 
   const formik = useFormik({
     initialValues: {
@@ -34,9 +44,9 @@ const SignUp: React.FC = () => {
           email: values.email,
           password: values.password,
           confirmPassword: values.confirmPassword,
+          companyId: selectedCompany._id,
         }).unwrap();
-        console.log('Signup successful:', response);
-        toast.success('User Created Successfully');
+        toast.success(response?.message || 'User created successfully');
         resetForm();
       } catch (err: any) {
         console.error('Signup failed:', err?.data?.message || err);
@@ -45,15 +55,22 @@ const SignUp: React.FC = () => {
     },
   });
 
+  const onChange = (value: string, option: any) => {
+    setSelectedCompany({ companyName: option.children, _id: option.value });
+  };
+
   return (
     <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
       <div className="flex flex-wrap items-center">
         {/* Left side */}
         <div className="hidden w-full xl:block xl:w-1/2 text-center py-17.5 px-26">
-          <Link className="mb-5.5 inline-block" to="/">
+          {/* <Link className="mb-5.5 inline-block" to="/">
             <img className="hidden dark:block" src={Logo} alt="Logo" />
             <img className="dark:hidden" src={LogoDark} alt="Logo" />
-          </Link>
+          </Link> */}
+          <h1 className="text-4xl md:text-5xl font-extrabold text-blue-600 tracking-wide drop-shadow-lg">
+            KRZ ERP
+          </h1>
           <p className="2xl:px-20">
             Smart ERP solutions built for modern typing centers
           </p>
@@ -107,6 +124,26 @@ const SignUp: React.FC = () => {
                     {formik.errors.email}
                   </p>
                 )}
+              </div>
+
+              <div className="mb-4">
+                <label className="mb-2.5 block font-medium text-black dark:text-white">
+                  Select Company
+                </label>
+                <Select
+                  className="h-12"
+                  placeholder="Select Company"
+                  style={{ width: '100%' }}
+                  value={selectedCompany.companyName}
+                  onChange={onChange}
+                  allowClear
+                >
+                  {data?.data?.map((company: any) => (
+                    <Option key={company._id} value={company._id}>
+                      {company.companyName}
+                    </Option>
+                  ))}
+                </Select>
               </div>
 
               {/* Password */}
