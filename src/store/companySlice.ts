@@ -6,13 +6,13 @@ export const companyApiSlice = createApi({
   reducerPath: 'companyApi',
   baseQuery: fetchBaseQuery({
     baseUrl: environment.VITE_DOMAIN_URL,
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token'); 
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`); 
-      }
-      return headers;
-    },
+    // prepareHeaders: (headers) => {
+    //   const token = localStorage.getItem('token'); 
+    //   if (token) {
+    //     headers.set('Authorization', `Bearer ${token}`); 
+    //   }
+    //   return headers;
+    // },
   }),
   endpoints: (builder) => ({
     getAllCompanies: builder.query<any, void>({
