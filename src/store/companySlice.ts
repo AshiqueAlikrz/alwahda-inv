@@ -17,7 +17,7 @@ export const companyApiSlice = createApi({
   endpoints: (builder) => ({
     getAllCompanies: builder.query<any, void>({
       query: () => ({
-        url: '/reports/allcompany',
+        url: '/auth/allcompany',
       }),
     }),
   }),
