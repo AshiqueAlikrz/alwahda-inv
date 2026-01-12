@@ -56,6 +56,12 @@ const onChange: TableProps<DataType>['onChange'] = (
 const Service = () => {
   const navigate = useNavigate();
 
+  const user = localStorage.getItem('user')
+    ? JSON.parse(localStorage.getItem('user') || '{}')
+    : null;
+  //
+  console.log('user', user);
+
   const [mode, setMode] = useState('Add');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [serviceData, setServiceData] = useState({

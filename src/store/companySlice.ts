@@ -7,9 +7,9 @@ export const companyApiSlice = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: environment.VITE_DOMAIN_URL,
     // prepareHeaders: (headers) => {
-    //   const token = localStorage.getItem('token'); 
+    //   const token = localStorage.getItem('token');
     //   if (token) {
-    //     headers.set('Authorization', `Bearer ${token}`); 
+    //     headers.set('Authorization', `Bearer ${token}`);
     //   }
     //   return headers;
     // },

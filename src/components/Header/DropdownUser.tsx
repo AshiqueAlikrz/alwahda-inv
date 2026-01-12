@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ClickOutside from '../ClickOutside';
 import UserOne from '../../images/user/user-icon-member-login-isolated-vector.jpg';
+import useLocalStorage from '../../hooks/useLocalStorage';
 
 const DropdownUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const user = localStorage.getItem('user')
-    ? JSON.parse(localStorage.getItem('user') || '{}')
-    : null;
+  const user = useLocalStorage('user', null)[0];
+
 
   const navigate = useNavigate();
 
@@ -16,6 +16,7 @@ const DropdownUser = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/auth/signin');
+    window.location.reload();
   };
 
   return (
@@ -26,7 +27,7 @@ const DropdownUser = () => {
         to="#"
       >
         <span className="hidden text-right lg:block">
-          <span className="block text-sm font-medium text-black dark:text-white">
+          <span className="block font-bold text-lg  text-black dark:text-white">
             {user?.name}
           </span>
           <span className="block text-xs">{user?.company?.companyName}</span>

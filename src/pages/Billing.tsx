@@ -32,6 +32,10 @@ const environment = import.meta.env;
 const Billing = () => {
   const navigate = useNavigate();
 
+  const user = localStorage.getItem('user')
+    ? JSON.parse(localStorage.getItem('user') || '{}')
+    : null;
+
   const initialBillingData = {
     name: '',
     date: '',
@@ -111,9 +115,9 @@ const Billing = () => {
           rate: Yup.number()
             .required('Rate is required')
             .min(1, 'Rate must be at least 1'),
-          // serviceCharge: Yup.number()
-          //   .required('service charge is required')
-          //   .min(1, 'charge must be at least 1'),
+          serviceCharge: Yup.number()
+            .required('service charge is required')
+            .min(1, 'charge must be at least 1'),
         }),
       )
       .required('At least one item is required'),
@@ -145,9 +149,9 @@ const Billing = () => {
           // );
           const response = await createInvoice({
             ...values,
-            companyId: '6949745c5a24cbc01d85433c',
             vatPaidByCompany: vatFromMe,
             profit: totalProfit,
+            companyId: user?.company._id,
           }).unwrap();
 
           if (response) {
@@ -596,7 +600,7 @@ const Billing = () => {
                       </td>
 
                       {/* service chr. */}
-                      <td className="items-center gap-2 flex py-3 mx-5 text-left">
+                      <td className="items-center flex-col flex py-3 mx-5 text-left">
                         <input
                           type="number"
                           className="form-input w-16 h-7 rounded text-center border border-slate-300 font-semibold"
