@@ -9,7 +9,6 @@ const DropdownUser = () => {
 
   const user = useLocalStorage('user', null)[0];
 
-
   const navigate = useNavigate();
 
   const logout = () => {

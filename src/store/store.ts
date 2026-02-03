@@ -1,9 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { apiSlice } from '../src/store/reportSlice';
+import { apiSlice } from './slice/reportSlice';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { companyApiSlice } from './store/companySlice';
-import { authApiSlice } from './store/authSlice';
-import userSlice from './store/state/userState';
+import { companyApiSlice } from './slice/companySlice';
+import { authApiSlice } from './slice/authSlice';
+import userSlice from './state/userState';
 
 export const store = configureStore({
   reducer: {

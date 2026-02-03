@@ -13,7 +13,7 @@ import axios from 'axios';
 import {
   useGetUsersByIdQuery,
   useUpdateItemMutation,
-} from '../store/reportSlice';
+} from '../store/slice/reportSlice';
 import { IoMdMore } from 'react-icons/io';
 import { QuestionCircleOutlined } from '@ant-design/icons';
 import EditModal from '../components/editModal';
@@ -149,32 +149,7 @@ const InvoiceDetail = () => {
       })
     : [];
 
-  // useEffect(() => {
-  //   const getInvoice = async () => {
-  //     try {
-  //       const response = await axios.get(
-  //         `https://inventory-backend-azure.vercel.app/api/reports/items/${id}`,
-  //       );
-  //       const formattedData = data.data.map(
-  //         (items: any, index: number) => {
-  //           return {
-  //             id: index + 1,
-  //             description: items.description.name,
-  //             quantity: items.quantity,
-  //             rate: items.rate,
-  //             total: items.total,
-  //             tax: items.tax,
-  //             serviceCharge: items.serviceCharge,
-  //           };
-  //         },
-  //       );
-  //       setItems(formattedData);
-  //     } catch (error) {
-  //       console.error('Error fetching the invoice:', error);
-  //     }
-  //   };
-  //   getInvoice();
-  // }, []);
+
 
   const [editData, setEditData] = useState({
     serviceCharge: 0,

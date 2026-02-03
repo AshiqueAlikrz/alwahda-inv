@@ -4,10 +4,10 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import LogoDark from '../../images/logo/logo-dark.svg';
 import Logo from '../../images/logo/logo.svg';
-import { useSignupMutation } from '../../store/authSlice';
+import { useSignupMutation } from '../../store/slice/authSlice';
 import { toast } from 'react-toastify';
 import { Select } from 'antd';
-import { useGetAllCompaniesQuery } from '../../store/companySlice';
+import { useGetAllCompaniesQuery } from '../../store/slice/companySlice';
 // import { useGetAllCompaniesQuery } from '../../store/companySlice';
 
 const SignUp: React.FC = () => {

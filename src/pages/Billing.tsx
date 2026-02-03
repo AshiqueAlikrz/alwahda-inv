@@ -16,9 +16,13 @@ import { CloseSquareFilled } from '@ant-design/icons';
 import {
   useCreateInvoiceMutation,
   useGetAllservicesQuery,
-} from '../store/reportSlice';
+  useLazyGetDailyReportsQuery,
+} from '../store/slice/reportSlice';
 import Loading from '../components/Loading';
 import CheckboxOne from '../components/Checkboxes/CheckboxOne';
+import { IoReceiptOutline, IoDocumentTextOutline } from 'react-icons/io5';
+import { HiOutlinePlus } from 'react-icons/hi';
+import Quotation from './UiElements/Quotaion';
 
 const colors1 = ['#fc6076', '#FF0000'];
 const colors2 = ['#A4FF6B', '#008000'];
@@ -31,6 +35,8 @@ const environment = import.meta.env;
 
 const Billing = () => {
   const navigate = useNavigate();
+
+  const [fetchDailyReports] = useLazyGetDailyReportsQuery();
 
   const user = localStorage.getItem('user')
     ? JSON.parse(localStorage.getItem('user') || '{}')
@@ -66,10 +72,15 @@ const Billing = () => {
   //   useContext(billingDataContext);
 
   const [open, setOpen] = useState(false);
+  const [openQuotation, setOpenQuotation] = useState(false);
   const [vatFromMe, setVatFromMe] = useState(false);
 
-  const showModal = () => {
-    setOpen(true);
+  const showModal = (name: string) => {
+    if (name === 'quotation') {
+      setOpenQuotation(true);
+    } else {
+      setOpen(true);
+    }
   };
 
   const handleOk = () => {
@@ -184,6 +195,7 @@ const Billing = () => {
               onClose={onClose}
             />;
             navigate(`/invoice/${response.data._id}`);
+            fetchDailyReports();
           } else {
             toast.error('Error creating invoice');
           }
@@ -275,89 +287,68 @@ const Billing = () => {
   }, [subTotal, grandTotal]);
 
   const { data, error, isLoading } = useGetAllservicesQuery();
-  // setAllServices(data?.data);
-  // console.log(data?.data);
-  // if (!isLoading) {
-  //   if (data) setAllServices(data?.data);
-  // } else {
-  //   toast.error('Error fetching the invoice:', error);
-  // }
-
-  // console.log('data.data', data);
-
-  // useEffect(() => {
-  //   const getService = async () => {
-  //     try {
-  //       const response = await axios.get(
-  //         `${environment.VITE_DOMAIN_URL}/reports/getService`,
-  //       );
-
-  //       setAllServices(response.data.data);
-  //     } catch (error: any) {}
-  //   };
-  //   getService();
-  // }, []);
-
-  console.log('formik', formik.values);
 
   return (
     <>
-      <Space>
-        <ConfigProvider
-          theme={{
-            components: {
-              Button: {
-                colorPrimary: `linear-gradient(135deg, ${colors1.join(', ')})`,
-                colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(
-                  colors1,
-                ).join(', ')})`,
-                colorPrimaryActive: `linear-gradient(135deg, ${getActiveColors(
-                  colors1,
-                ).join(', ')})`,
-                lineWidth: 0,
-              },
-            },
-          }}
+      <div className="flex gap-6">
+        <button
+          onClick={() => showModal('invoice')}
+          className="group relative flex h-24 w-52 flex-col items-center justify-center overflow-hidden rounded-2xl bg-blue-600 font-sans tracking-wide text-white transition-all duration-300 hover:bg-blue-700 hover:shadow-[0_20px_40px_-10px_rgba(37,99,235,0.5)] active:scale-95"
         >
-          <Button
-            type="primary"
-            size="large"
-            className="h-20 w-44"
-            onClick={showModal}
-          >
-            BILL
-          </Button>
-        </ConfigProvider>
-        <ConfigProvider
-          theme={{
-            components: {
-              Button: {
-                colorPrimary: `linear-gradient(90deg,  ${colors2.join(', ')})`,
-                colorPrimaryHover: `linear-gradient(135deg, ${getHoverColors(
-                  colors2,
-                ).join(', ')})`,
-                colorPrimaryActive: `linear-gradient(90deg, ${getActiveColors(
-                  colors2,
-                ).join(', ')})`,
-                lineWidth: 0,
-              },
-            },
-          }}
-        >
-          {/* <Button
-            type="primary"
-            size="large"
-            className="h-20 w-44"
-            onClick={() => {
-              navigate('/report');
-            }}
-          >
-            REPORT
-          </Button> */}
-        </ConfigProvider>
-      </Space>
+          {/* Animated Shimmer Effect */}
+          <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
 
-      {/* modal */}
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="mb-1 rounded-lg bg-white/10 p-2 group-hover:bg-white/20 transition-colors">
+              <IoReceiptOutline size={24} />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-100/70">
+              Create New
+            </span>
+            <span className="text-lg font-extrabold tracking-tight">BILL</span>
+          </div>
+
+          {/* Subtle Corner Icon */}
+          <HiOutlinePlus
+            className="absolute right-3 top-3 text-white/20 transition-opacity group-hover:opacity-100"
+            size={18}
+          />
+        </button>
+{/* 
+        <button
+          onClick={() => showModal('quotation')}
+          className="group relative flex h-24 w-52 flex-col items-center justify-center overflow-hidden rounded-2xl bg-red-500 font-sans tracking-wide text-white transition-all duration-300 hover:bg-red-600 hover:shadow-[0_20px_40px_-10px_rgba(239,68,68,0.5)] active:scale-95"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="mb-1 rounded-lg bg-white/10 p-2 group-hover:bg-white/20 transition-colors">
+              <IoDocumentTextOutline size={24} />
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-100/70">
+              Estimate
+            </span>
+            <span className="text-lg font-extrabold tracking-tight uppercase">
+              Quotation
+            </span>
+          </div>
+
+          <div className="absolute bottom-3 right-3 flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-40"></span>
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-white/60"></span>
+          </div>
+        </button> */}
+      </div>
+
+      <Modal
+        open={openQuotation}
+        className="flex justify-center !z-10 "
+        title="QUOTATION"
+        onOk={formik.handleSubmit}
+        onCancel={handleCancel}
+      >
+        <Quotation />
+      </Modal>
 
       <Modal
         className="flex justify-center !z-10 "

@@ -16,7 +16,7 @@ import {
   useGetUsersByIdQuery,
   useGetUsersQuery,
   useUpdateServiceMutation,
-} from '../../store/reportSlice';
+} from '../../store/slice/reportSlice';
 import ButtonCard from '../../components/buttonCard';
 import { toast } from 'react-toastify';
 

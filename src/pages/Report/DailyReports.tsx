@@ -13,7 +13,7 @@ import {
   //   useGetDailyReportQuery,
   useGetUsersByIdQuery,
   useGetUsersQuery,
-} from '../../store/reportSlice';
+} from '../../store/slice/reportSlice';
 import ButtonCard from '../../components/buttonCard';
 
 interface Item {
@@ -120,7 +120,6 @@ const Calendar = () => {
 
   const { data, error, isLoading } = useGetDailyReportsQuery();
 
-  console.log('data, error, isLoading', data?.data, error, isLoading);
 
   // useEffect(() => {
   //   if (!data?.data?.length) {

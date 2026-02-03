@@ -10,7 +10,7 @@ import {
   Table,
   Switch,
 } from 'antd';
-import type { DatePickerProps, TableColumnsType, TableProps } from 'antd';
+import type { TableColumnsType } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { IoMdMore } from 'react-icons/io';
@@ -22,7 +22,7 @@ import dayjs from 'dayjs';
 import {
   useGetUsersQuery,
   useUpdateInvoiceMutation,
-} from '../../store/reportSlice';
+} from '../../store/slice/reportSlice';
 
 interface Item {
   id: number;

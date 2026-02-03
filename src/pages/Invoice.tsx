@@ -4,7 +4,7 @@ import jsPDF from 'jspdf';
 import alwahdaText from '../assets/alwahda.png';
 import moment from 'moment';
 import { useParams } from 'react-router-dom';
-import { useGetInvoiceByIdQuery } from '../store/reportSlice';
+import { useGetInvoiceByIdQuery } from '../store/slice/reportSlice';
 import Loading from '../components/Loading';
 
 const InvoiceData = () => {

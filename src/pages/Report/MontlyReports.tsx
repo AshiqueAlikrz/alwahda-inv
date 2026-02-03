@@ -13,7 +13,7 @@ import {
   useGetMonthlyReportsQuery,
   useGetUsersByIdQuery,
   useGetUsersQuery,
-} from '../../store/reportSlice';
+} from '../../store/slice/reportSlice';
 import ButtonCard from '../../components/buttonCard';
 
 interface Item {

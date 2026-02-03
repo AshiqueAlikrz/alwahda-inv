@@ -11,11 +11,11 @@ import { FaSpinner } from 'react-icons/fa6';
 import {
   useGetDashboardReportQuery,
   useUpdateItemMutation,
-} from '../../store/reportSlice';
+} from '../../store/slice/reportSlice';
 import { toast } from 'react-toastify';
 
 const ECommerce: React.FC = () => {
-  const { data, error, isLoading } = useGetDashboardReportQuery(); 
+  const { data, error, isLoading } = useGetDashboardReportQuery();
 
   const stats = [
     {
@@ -33,7 +33,7 @@ const ECommerce: React.FC = () => {
           : 0,
     },
     {
-      title: 'Total Vat',
+      title: 'Total VAT',
       total: data?.data?.todayReport[0]?.vat || 0,
     },
     {
