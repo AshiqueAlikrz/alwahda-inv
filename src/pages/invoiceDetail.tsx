@@ -163,9 +163,14 @@ const InvoiceDetail = () => {
   });
 
   const onChange = (e) => {
+    const { name, value } = e.target;
     setEditData({
       ...editData,
-      [e.target.name]: Number(e.target.value),
+      [name]: Number(value),
+      // VAT is 5% of the (net) service charge; refill it when the service charge changes, still editable afterwards
+      ...(name === 'serviceCharge' && {
+        tax: Number((Number(value) * 0.05).toFixed(2)),
+      }),
     });
   };
 

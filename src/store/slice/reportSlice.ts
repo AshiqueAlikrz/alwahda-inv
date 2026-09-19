@@ -65,7 +65,7 @@ export const apiSlice = createApi({
         method: 'PUT',
         body,
       }),
-      invalidatesTags: ['userItems'],
+      invalidatesTags: ['userItems', 'Invoices'],
     }),
     updateInvoice: builder.mutation<any, { invoiceId: string; body: any }>({
       query: ({ invoiceId, body }) => ({
