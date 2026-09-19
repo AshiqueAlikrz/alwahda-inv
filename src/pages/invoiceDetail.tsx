@@ -11,6 +11,7 @@ import {
 import { useLocation, useParams } from 'react-router-dom';
 import axios from 'axios';
 import {
+  useGetInvoiceByIdQuery,
   useGetUsersByIdQuery,
   useUpdateItemMutation,
 } from '../store/slice/reportSlice';
@@ -133,6 +134,8 @@ const InvoiceDetail = () => {
 
   const { id } = useParams<{ id: string }>();
   const { data, error, isLoading } = useGetUsersByIdQuery(id);
+  const { data: invoiceData } = useGetInvoiceByIdQuery(id);
+  const createdByName = (invoiceData as any)?.data?.createdBy?.name;
 
   const formattedData = data
     ? data.data.map((items: any, index: number) => {
@@ -186,6 +189,11 @@ const InvoiceDetail = () => {
 
   return (
     <>
+      <div className="mb-3 flex justify-end text-sm text-black dark:text-white">
+        <span className="font-medium">Created By:&nbsp;</span>
+        <span>{createdByName || '-'}</span>
+      </div>
+
       <Table<Item>
         loading={isLoading}
         columns={columns}

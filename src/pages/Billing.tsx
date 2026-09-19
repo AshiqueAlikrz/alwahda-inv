@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { TinyColor } from '@ctrl/tinycolor';
-import { Modal, Button, ConfigProvider, Space, Select } from 'antd';
+import { Modal, Button, ConfigProvider, Space, Select, Divider } from 'antd';
 import { MdDeleteOutline } from 'react-icons/md';
 import { TiPlus } from 'react-icons/ti';
 // import Invoice from './Invoice';
@@ -12,7 +12,7 @@ import * as Yup from 'yup';
 import { Formik, Form, Field, ErrorMessage, useFormik } from 'formik';
 import axios from 'axios';
 import { Alert } from 'antd';
-import { CloseSquareFilled } from '@ant-design/icons';
+import { CloseSquareFilled, PlusOutlined } from '@ant-design/icons';
 import {
   useCreateInvoiceMutation,
   useGetAllservicesQuery,
@@ -23,6 +23,7 @@ import CheckboxOne from '../components/Checkboxes/CheckboxOne';
 import { IoReceiptOutline, IoDocumentTextOutline } from 'react-icons/io5';
 import { HiOutlinePlus } from 'react-icons/hi';
 import Quotation from './UiElements/Quotaion';
+import ServiceModal from '../components/ServiceModal';
 
 const colors1 = ['#fc6076', '#FF0000'];
 const colors2 = ['#A4FF6B', '#008000'];
@@ -74,6 +75,11 @@ const Billing = () => {
   const [open, setOpen] = useState(false);
   const [openQuotation, setOpenQuotation] = useState(false);
   const [vatFromMe, setVatFromMe] = useState(false);
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [serviceRowIndex, setServiceRowIndex] = useState(0);
+  const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(
+    null,
+  );
 
   const showModal = (name: string) => {
     if (name === 'quotation') {
@@ -503,6 +509,29 @@ const Billing = () => {
                             width: 200,
                           }}
                           placeholder="Search to Select"
+                          value={item.description || undefined}
+                          open={openDropdownIndex === index}
+                          onDropdownVisibleChange={(visible) =>
+                            setOpenDropdownIndex(visible ? index : null)
+                          }
+                          dropdownRender={(menu) => (
+                            <>
+                              {menu}
+                              <Divider style={{ margin: '8px 0' }} />
+                              <Button
+                                type="text"
+                                block
+                                icon={<PlusOutlined />}
+                                onClick={() => {
+                                  setServiceRowIndex(index);
+                                  setOpenDropdownIndex(null);
+                                  setServiceModalOpen(true);
+                                }}
+                              >
+                                Add Service
+                              </Button>
+                            </>
+                          )}
                           optionFilterProp="label"
                           filterSort={(optionA, optionB) =>
                             (optionA.label ?? '')
@@ -705,6 +734,22 @@ const Billing = () => {
           </form>
         </div>
       </Modal>
+
+      <ServiceModal
+        open={serviceModalOpen}
+        zIndex={1100}
+        onClose={() => setServiceModalOpen(false)}
+        onSaved={(service) => {
+          formik.setFieldValue(
+            `items[${serviceRowIndex}].description`,
+            service?._id || '',
+          );
+          formik.setFieldValue(
+            `items[${serviceRowIndex}].rate`,
+            service?.price || '',
+          );
+        }}
+      />
     </>
   );
 };

@@ -9,13 +9,16 @@ import './index.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Provider } from 'react-redux';
+import { ConfigProvider } from 'antd';
 import { store } from './store/store';
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <Provider store={store}>
       <Router>
-        <App />
+        <ConfigProvider theme={{ token: { fontFamily: 'Inter, sans-serif' } }}>
+          <App />
+        </ConfigProvider>
         <ToastContainer />
       </Router>
     </Provider>

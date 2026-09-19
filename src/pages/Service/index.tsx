@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useContext, useEffect, useState } from 'react';
-import { Button, Dropdown, Input, Menu, Modal, Popconfirm, Table } from 'antd';
+import { Button, Dropdown, Menu, Popconfirm, Table } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
@@ -10,14 +10,13 @@ import { QuestionCircleOutlined } from '@ant-design/icons';
 import useReportApi from '../../api/report';
 import { useSelector } from 'react-redux';
 import {
-  useCreateServiceMutation,
   useDeleteServiceMutation,
   useGetAllServiceQuery,
   useGetUsersByIdQuery,
   useGetUsersQuery,
-  useUpdateServiceMutation,
 } from '../../store/slice/reportSlice';
 import ButtonCard from '../../components/buttonCard';
+import ServiceModal from '../../components/ServiceModal';
 import { toast } from 'react-toastify';
 
 interface Item {
@@ -62,7 +61,7 @@ const Service = () => {
   //
   console.log('user', user);
 
-  const [mode, setMode] = useState('Add');
+  const [mode, setMode] = useState<'Add' | 'Edit'>('Add');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [serviceData, setServiceData] = useState({
     name: '',
@@ -135,8 +134,6 @@ const Service = () => {
   ];
 
   const { data, error, isLoading } = useGetAllServiceQuery();
-  const [createService] = useCreateServiceMutation();
-  const [updateService] = useUpdateServiceMutation();
   const [deleteService] = useDeleteServiceMutation();
 
   if (error) {
@@ -174,29 +171,6 @@ const Service = () => {
     setIsModalOpen(true);
   };
 
-  const handleOk = async () => {
-    setIsModalOpen(false);
-    if (mode === 'Edit') {
-      const response = await updateService({ serviceId, body: serviceData });
-      toast.success(response.data.message);
-    } else {
-      const response = await createService(serviceData).unwrap();
-      toast.success(response.message);
-    }
-  };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-  };
-
-  const onChange = (e: any) => {
-    setServiceData({
-      ...serviceData,
-      [e.target.name]:
-        e.target.name === 'name' ? e.target.value : Number(e.target.value),
-    });
-  };
-
   return (
     <div className="flex flex-col gap-3">
       <div className="flex w-full justify-end">
@@ -214,36 +188,13 @@ const Service = () => {
         })}
       />
 
-      <Modal
-        title={`${mode} Service`}
-        closable={{ 'aria-label': 'Custom Close Button' }}
+      <ServiceModal
         open={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      >
-        <div className="flex gap-3 flex-col">
-          <div className="flex gap-1">
-            <label className="text-nowrap">Service Name :</label>
-            <Input
-              type="text"
-              onChange={onChange}
-              name="name"
-              placeholder="Service Name"
-              value={serviceData.name}
-            />
-          </div>
-          <div className="flex gap-1">
-            <label className="text-nowrap">Price :</label>
-            <Input
-              onChange={onChange}
-              type="number"
-              placeholder="price"
-              name="price"
-              value={serviceData.price}
-            />
-          </div>
-        </div>
-      </Modal>
+        mode={mode}
+        serviceId={serviceId}
+        initialData={serviceData}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

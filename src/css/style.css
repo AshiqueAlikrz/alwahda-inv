@@ -4,8 +4,7 @@
 
 @layer base {
   body {
-    @apply font-normal bg-whiten relative z-1;
-    font-family: 'Helvetica, Arial, Calibri';
+    @apply font-sans font-normal bg-whiten relative z-1;
   }
 }
 
