@@ -151,14 +151,7 @@ const Calendar = () => {
         invoice_number: invoice.invoice_number,
         date: moment(invoice.date).format('DD-MM-YYYY'),
         name: invoice.name,
-        vat: (
-          <span>
-            {invoice.totalVat ? invoice.totalVat.toFixed(2) : '-'}{' '}
-            {invoice.vatPaidByCompany && (
-              <span className="text-xs text-green-500">(company)</span>
-            )}
-          </span>
-        ),
+        vat: invoice.totalVat ? invoice.totalVat.toFixed(2) : '-',
         sub_total: invoice.subTotal.toFixed(2),
         profit: invoice.profit.toFixed(2),
         grand_total: invoice.grandTotal.toFixed(2),

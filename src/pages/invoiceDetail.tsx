@@ -136,6 +136,7 @@ const InvoiceDetail = () => {
   const { data, error, isLoading } = useGetUsersByIdQuery(id);
   const { data: invoiceData } = useGetInvoiceByIdQuery(id);
   const createdByName = (invoiceData as any)?.data?.createdBy?.name;
+  const vatPaidByCompany = (invoiceData as any)?.data?.vatPaidByCompany;
 
   const formattedData = data
     ? data.data.map((items: any, index: number) => {
@@ -189,9 +190,21 @@ const InvoiceDetail = () => {
 
   return (
     <>
-      <div className="mb-3 flex justify-end text-sm text-black dark:text-white">
-        <span className="font-medium">Created By:&nbsp;</span>
-        <span>{createdByName || '-'}</span>
+      <div className="mb-3 flex flex-col items-end gap-1 text-sm text-black dark:text-white">
+        <div className="flex">
+          <span className="font-medium">Created By:&nbsp;</span>
+          <span>{createdByName || '-'}</span>
+        </div>
+        <div className="flex">
+          <span className="font-medium">VAT Paid By:&nbsp;</span>
+          <span>
+            {vatPaidByCompany === undefined
+              ? '-'
+              : vatPaidByCompany
+              ? 'Company'
+              : 'Customer'}
+          </span>
+        </div>
       </div>
 
       <Table<Item>
