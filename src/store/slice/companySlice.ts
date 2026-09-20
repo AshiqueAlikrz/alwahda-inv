@@ -2,6 +2,14 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 const environment = import.meta.env;
 
+export interface CreateCompanyBody {
+  companyName: string;
+  businessType: string;
+  phoneNumber?: string;
+  purchaseDate?: string;
+  expiryDate?: string;
+}
+
 export const companyApiSlice = createApi({
   reducerPath: 'companyApi',
   baseQuery: fetchBaseQuery({
@@ -14,13 +22,24 @@ export const companyApiSlice = createApi({
     //   return headers;
     // },
   }),
+  tagTypes: ['Company'],
   endpoints: (builder) => ({
     getAllCompanies: builder.query<any, void>({
       query: () => ({
         url: '/auth/allcompany',
       }),
+      providesTags: ['Company'],
+    }),
+    createCompany: builder.mutation<any, CreateCompanyBody>({
+      query: (body) => ({
+        url: '/auth/company',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Company'],
     }),
   }),
 });
 
-export const { useGetAllCompaniesQuery } = companyApiSlice;
+export const { useGetAllCompaniesQuery, useCreateCompanyMutation } =
+  companyApiSlice;

@@ -6,8 +6,10 @@ import LogoDark from '../../images/logo/logo-dark.svg';
 import Logo from '../../images/logo/logo.svg';
 import { useSignupMutation } from '../../store/slice/authSlice';
 import { toast } from 'react-toastify';
-import { Select } from 'antd';
+import { Button, Divider, Select } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useGetAllCompaniesQuery } from '../../store/slice/companySlice';
+import AddCompanyModal from '../../components/AddCompanyModal';
 // import { useGetAllCompaniesQuery } from '../../store/companySlice';
 
 const SignUp: React.FC = () => {
@@ -19,6 +21,8 @@ const SignUp: React.FC = () => {
     companyName: '',
     _id: '',
   });
+  const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
+  const [addCompanyOpen, setAddCompanyOpen] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -137,6 +141,26 @@ const SignUp: React.FC = () => {
                   value={selectedCompany.companyName}
                   onChange={onChange}
                   allowClear
+                  open={companyDropdownOpen}
+                  onDropdownVisibleChange={setCompanyDropdownOpen}
+                  dropdownRender={(menu) => (
+                    <>
+                      {menu}
+                      <Divider style={{ margin: '8px 0' }} />
+                      <Button
+                        type="text"
+                        block
+                        icon={<PlusOutlined />}
+                        style={{ textAlign: 'left' }}
+                        onClick={() => {
+                          setCompanyDropdownOpen(false);
+                          setAddCompanyOpen(true);
+                        }}
+                      >
+                        Add Company
+                      </Button>
+                    </>
+                  )}
                 >
                   {data?.data?.map((company: any) => (
                     <Option key={company._id} value={company._id}>
@@ -144,6 +168,16 @@ const SignUp: React.FC = () => {
                     </Option>
                   ))}
                 </Select>
+                <AddCompanyModal
+                  open={addCompanyOpen}
+                  onClose={() => setAddCompanyOpen(false)}
+                  onSaved={(company) =>
+                    setSelectedCompany({
+                      companyName: company.companyName,
+                      _id: company._id,
+                    })
+                  }
+                />
               </div>
 
               {/* Password */}
