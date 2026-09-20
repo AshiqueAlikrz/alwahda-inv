@@ -22,6 +22,7 @@ import * as Yup from 'yup';
 import dayjs from 'dayjs';
 
 import {
+  useDeleteInvoiceMutation,
   useGetUsersQuery,
   useUpdateInvoiceMutation,
 } from '../../store/slice/reportSlice';
@@ -101,6 +102,24 @@ const Calendar = () => {
   const navigate = useNavigate();
   const { data, isLoading } = useGetUsersQuery();
   const [updateInvoice] = useUpdateInvoiceMutation();
+  const [deleteInvoice] = useDeleteInvoiceMutation();
+
+  const confirmDelete = (record: DataType) => {
+    Modal.confirm({
+      title: `Delete invoice #${record.invoice_number}?`,
+      content: 'This permanently removes the invoice and cannot be undone.',
+      okText: 'Delete',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          const response = await deleteInvoice(record.id).unwrap();
+          toast.success(response?.message || 'Invoice deleted successfully');
+        } catch (err: any) {
+          toast.error(err?.data?.message || 'Error deleting invoice');
+        }
+      },
+    });
+  };
 
   const handleMenuClick = (record: DataType) => {
     const isoDate = moment(record.date, 'DD-MM-YYYY').format('YYYY-MM-DD');
@@ -122,11 +141,16 @@ const Calendar = () => {
           handleMenuClick(record);
         } else if (e.key === 'invoice') {
           navigate(`/invoice/${record.id}`);
+        } else if (e.key === 'delete') {
+          confirmDelete(record);
         }
       }}
     >
       <Menu.Item key="edit">Edit</Menu.Item>
       <Menu.Item key="invoice">Print Invoice</Menu.Item>
+      <Menu.Item key="delete" danger>
+        Delete
+      </Menu.Item>
     </Menu>
   );
 

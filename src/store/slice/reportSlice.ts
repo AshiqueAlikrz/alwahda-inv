@@ -106,6 +106,13 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Invoices'],
     }),
+    deleteInvoice: builder.mutation<any, string>({
+      query: (invoiceId) => ({
+        url: `/reports/invoice/${invoiceId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Invoices'],
+    }),
     getProformas: builder.query<any, void>({
       query: () => '/reports/proformas',
       providesTags: ['Proforma'],
@@ -190,6 +197,7 @@ export const {
   useGetAllServiceQuery,
   useCreateServiceMutation,
   useUpdateInvoiceMutation,
+  useDeleteInvoiceMutation,
   useUpdateServiceMutation,
   useSendInvoiceEmailMutation,
   useGetAllCustomersQuery,

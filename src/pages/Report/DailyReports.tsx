@@ -1,13 +1,11 @@
-import axios from 'axios';
 import React, { useMemo, useState } from 'react';
-import { Button, DatePicker, Dropdown, Menu, Popconfirm, Table } from 'antd';
+import { Button, DatePicker, Table } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import type { TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
 import { IoMdMore } from 'react-icons/io';
-import { QuestionCircleOutlined } from '@ant-design/icons';
 import useReportApi from '../../api/report';
 import { useSelector } from 'react-redux';
 import {
@@ -41,38 +39,6 @@ export interface DataType {
   paid: boolean;
   id: string;
 }
-const handleMenuClick = (e: any) => {
-  console.log('eee', e);
-  // Handle your edit or delete action here
-};
-const handleDelete = async () => {
-  await axios.delete('http://localhost:8081/api/reports/invoice/:invoiceId');
-  console.log('Task deleted'); // Handle the delete action here
-};
-
-const menu = (
-  <Menu
-    onClick={(e) => {
-      e.domEvent.stopPropagation();
-      handleMenuClick(e); // Call the function properly
-    }}
-  >
-    <Menu.Item key="edit">Edit</Menu.Item>
-    <Menu.Item key="delete">
-      {' '}
-      <Popconfirm
-        title="Delete the task"
-        description="Are you sure to delete this task?"
-        icon={<QuestionCircleOutlined style={{ color: 'red' }} />}
-        onConfirm={handleDelete}
-        // onCancel={handleCancel}
-      >
-        Delete
-      </Popconfirm>{' '}
-    </Menu.Item>
-  </Menu>
-);
-
 const columns: TableColumnsType<DataType> = [
   {
     title: '#',
