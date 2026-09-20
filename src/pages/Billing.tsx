@@ -1,6 +1,14 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { TinyColor } from '@ctrl/tinycolor';
-import { Modal, Button, ConfigProvider, Space, Select, Divider } from 'antd';
+import {
+  AutoComplete,
+  Modal,
+  Button,
+  ConfigProvider,
+  Space,
+  Select,
+  Divider,
+} from 'antd';
 import { MdDeleteOutline } from 'react-icons/md';
 import { TiPlus } from 'react-icons/ti';
 // import Invoice from './Invoice';
@@ -15,15 +23,22 @@ import { Alert } from 'antd';
 import { CloseSquareFilled, PlusOutlined } from '@ant-design/icons';
 import {
   useCreateInvoiceMutation,
+  useCreateProformaMutation,
+  useGetAllCustomersQuery,
   useGetAllservicesQuery,
   useLazyGetDailyReportsQuery,
 } from '../store/slice/reportSlice';
 import Loading from '../components/Loading';
 import CheckboxOne from '../components/Checkboxes/CheckboxOne';
-import { IoReceiptOutline, IoDocumentTextOutline } from 'react-icons/io5';
+import {
+  IoReceiptOutline,
+  IoDocumentTextOutline,
+  IoClipboardOutline,
+} from 'react-icons/io5';
 import { HiOutlinePlus } from 'react-icons/hi';
-import Quotation from './UiElements/Quotaion';
 import ServiceModal from '../components/ServiceModal';
+import CustomerModal from '../components/CustomerModal';
+import Card from '../components/ui/Card';
 
 const colors1 = ['#fc6076', '#FF0000'];
 const colors2 = ['#A4FF6B', '#008000'];
@@ -73,20 +88,20 @@ const Billing = () => {
   //   useContext(billingDataContext);
 
   const [open, setOpen] = useState(false);
-  const [openQuotation, setOpenQuotation] = useState(false);
+  // the same form saves either a tax invoice or a proforma invoice
+  const [billMode, setBillMode] = useState<'invoice' | 'proforma'>('invoice');
   const [vatFromMe, setVatFromMe] = useState(false);
+  const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [nameDropdownOpen, setNameDropdownOpen] = useState(false);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [serviceRowIndex, setServiceRowIndex] = useState(0);
   const [openDropdownIndex, setOpenDropdownIndex] = useState<number | null>(
     null,
   );
 
-  const showModal = (name: string) => {
-    if (name === 'quotation') {
-      setOpenQuotation(true);
-    } else {
-      setOpen(true);
-    }
+  const showModal = (mode: 'invoice' | 'proforma' = 'invoice') => {
+    setBillMode(mode);
+    setOpen(true);
   };
 
   const handleOk = () => {
@@ -147,6 +162,7 @@ const Billing = () => {
   // const { data, error, isLoading } = useCreateInvoiceMutation(invoiceId);
 
   const [createInvoice] = useCreateInvoiceMutation();
+  const [createProforma] = useCreateProformaMutation();
 
   const formik = useFormik({
     initialValues: initialBillingData,
@@ -164,6 +180,18 @@ const Billing = () => {
           //   values,
           //   values,
           // );
+          if (billMode === 'proforma') {
+            const proformaResponse = await createProforma({
+              ...values,
+              vatPaidByCompany: vatFromMe,
+              profit: totalProfit,
+            }).unwrap();
+            handleReset();
+            toast.success(proformaResponse.message);
+            navigate(`/proforma/${proformaResponse.data._id}`);
+            return;
+          }
+
           const response = await createInvoice({
             ...values,
             vatPaidByCompany: vatFromMe,
@@ -207,7 +235,7 @@ const Billing = () => {
           }
         }
       } catch (error: any) {
-        toast.error(error);
+        toast.error(error?.data?.message || 'Something went wrong');
       }
     },
   });
@@ -293,158 +321,248 @@ const Billing = () => {
   }, [subTotal, grandTotal]);
 
   const { data, error, isLoading } = useGetAllservicesQuery();
+  const { data: customersData } = useGetAllCustomersQuery();
+  const customers: any[] = customersData?.data ?? [];
+
+  // Fill the bill's customer fields; keeps whatever was typed for details the customer doesn't have
+  const fillCustomer = (customer: any) => {
+    formik.setFieldValue('name', customer.name);
+    if (customer.contact) formik.setFieldValue('contact', customer.contact);
+    if (customer.trn) formik.setFieldValue('trn', customer.trn);
+    if (customer.address) formik.setFieldValue('address', customer.address);
+  };
 
   return (
     <>
-      <div className="flex gap-6">
-        <button
-          onClick={() => showModal('invoice')}
-          className="group relative flex h-24 w-52 flex-col items-center justify-center overflow-hidden rounded-2xl bg-blue-600 font-sans tracking-wide text-white transition-all duration-300 hover:bg-blue-700 hover:shadow-[0_20px_40px_-10px_rgba(37,99,235,0.5)] active:scale-95"
-        >
-          {/* Animated Shimmer Effect */}
-          <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="mb-1 rounded-lg bg-white/10 p-2 group-hover:bg-white/20 transition-colors">
-              <IoReceiptOutline size={24} />
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <Card className="text-center">
+          <div className="flex h-full flex-col items-center gap-5 py-8">
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-3xl text-primary">
+              <IoReceiptOutline />
+            </span>
+            <div>
+              <h2 className="text-2xl font-bold text-black dark:text-white">
+                Create a new bill
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-body dark:text-bodydark">
+                Enter the customer details and pick the services. The tax
+                invoice is saved and opens ready to print.
+              </p>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-100/70">
-              Create New
-            </span>
-            <span className="text-lg font-extrabold tracking-tight">BILL</span>
+            <Button
+              type="primary"
+              size="large"
+              icon={<HiOutlinePlus />}
+              onClick={() => showModal('invoice')}
+            >
+              New bill
+            </Button>
           </div>
+        </Card>
 
-          {/* Subtle Corner Icon */}
-          <HiOutlinePlus
-            className="absolute right-3 top-3 text-white/20 transition-opacity group-hover:opacity-100"
-            size={18}
-          />
-        </button>
-{/* 
-        <button
-          onClick={() => showModal('quotation')}
-          className="group relative flex h-24 w-52 flex-col items-center justify-center overflow-hidden rounded-2xl bg-red-500 font-sans tracking-wide text-white transition-all duration-300 hover:bg-red-600 hover:shadow-[0_20px_40px_-10px_rgba(239,68,68,0.5)] active:scale-95"
-        >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="mb-1 rounded-lg bg-white/10 p-2 group-hover:bg-white/20 transition-colors">
-              <IoDocumentTextOutline size={24} />
+        <Card className="text-center">
+          <div className="flex h-full flex-col items-center gap-5 py-8">
+            <span
+              className="flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
+              style={{ color: '#1baf7a', backgroundColor: '#1baf7a1f' }}
+            >
+              <IoClipboardOutline />
+            </span>
+            <div>
+              <h2 className="text-2xl font-bold text-black dark:text-white">
+                Create a proforma invoice
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-body dark:text-bodydark">
+                A preliminary bill sent before the sale. It is not counted in
+                reports until you convert it to a tax invoice.
+              </p>
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-100/70">
-              Estimate
-            </span>
-            <span className="text-lg font-extrabold tracking-tight uppercase">
-              Quotation
-            </span>
+            <Button
+              size="large"
+              icon={<HiOutlinePlus />}
+              onClick={() => showModal('proforma')}
+            >
+              New proforma
+            </Button>
           </div>
+        </Card>
 
-          <div className="absolute bottom-3 right-3 flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-40"></span>
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-white/60"></span>
+        <Card className="text-center">
+          <div className="flex h-full flex-col items-center gap-5 py-8">
+            <span
+              className="flex h-16 w-16 items-center justify-center rounded-2xl text-3xl"
+              style={{ color: '#eb6834', backgroundColor: '#eb68341f' }}
+            >
+              <IoDocumentTextOutline />
+            </span>
+            <div>
+              <h2 className="text-2xl font-bold text-black dark:text-white">
+                Create a quotation
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-body dark:text-bodydark">
+                Prepare a price quote for a client. It gets its own number and
+                can be printed or saved as a PDF.
+              </p>
+            </div>
+            <Button
+              size="large"
+              icon={<HiOutlinePlus />}
+              onClick={() => navigate('/quotations/new')}
+            >
+              New quotation
+            </Button>
           </div>
-        </button> */}
+        </Card>
       </div>
-
-      <Modal
-        open={openQuotation}
-        className="flex justify-center !z-10 "
-        title="QUOTATION"
-        onOk={formik.handleSubmit}
-        onCancel={handleCancel}
-      >
-        <Quotation />
-      </Modal>
 
       <Modal
         className="flex justify-center !z-10 "
         open={open}
-        title="BILLING"
+        title={billMode === 'proforma' ? 'New Proforma Invoice' : 'New Bill'}
+        width={1100}
+        style={{ maxWidth: 'calc(100vw - 32px)' }}
         onOk={formik.handleSubmit}
         onCancel={handleCancel}
         footer={[
-          <Button key="save" onClick={formik.handleSubmit}>
-            <IoMdPrint />
-            PRINT
+          <Button key="" type="text" onClick={handleReset}>
+            Reset
           </Button>,
-          <Button key="cancel" type="primary" danger onClick={handleCancel}>
+          <Button key="cancel" onClick={handleCancel}>
             Cancel
           </Button>,
-          <Button key="" type="dashed" danger onClick={handleReset}>
-            Reset
+          <Button key="save" type="primary" onClick={formik.handleSubmit}>
+            <IoMdPrint />
+            Print
           </Button>,
         ]}
       >
         <div className="container mx-auto ">
           <form>
-            <div className="grid grid-cols-3 gap-3 justify-between w-full bg-slate-100 p-3">
-              <div className="flex items-center gap-2 h-9 w-full">
-                <h2 className="font-semibold text-base mx-1">Name :</h2>
-                <input
-                  type="text"
-                  required
-                  name="name"
+            <div className="grid grid-cols-1 gap-4 rounded-xl bg-gray-2 p-4 dark:bg-meta-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">
+                  Name
+                </label>
+                <AutoComplete
+                  size="large"
+                  className="w-full"
+                  placeholder="Type or select a customer"
                   value={formik.values.name}
-                  onChange={formik.handleChange}
-                  className="h-8 w-4/6 rounded-md  p-1 font-semibold "
+                  open={nameDropdownOpen}
+                  onDropdownVisibleChange={setNameDropdownOpen}
+                  onChange={(value) => formik.setFieldValue('name', value)}
+                  onBlur={() => formik.setFieldTouched('name', true)}
+                  onSelect={(value) => {
+                    const customer = customers.find((c) => c.name === value);
+                    if (customer) fillCustomer(customer);
+                  }}
+                  options={customers.map((customer) => ({
+                    value: customer.name,
+                    label: (
+                      <div className="flex justify-between gap-3">
+                        <span>{customer.name}</span>
+                        {customer.contact && (
+                          <span className="text-xs opacity-60">
+                            {customer.contact}
+                          </span>
+                        )}
+                      </div>
+                    ),
+                  }))}
+                  filterOption={(input, option) =>
+                    String(option?.value ?? '')
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  notFoundContent={
+                    <span className="text-xs">
+                      No matching customer. A new one is saved with the bill.
+                    </span>
+                  }
+                  dropdownRender={(menu) => (
+                    <>
+                      {menu}
+                      <Divider style={{ margin: '8px 0' }} />
+                      <Button
+                        type="text"
+                        block
+                        icon={<PlusOutlined />}
+                        onClick={() => {
+                          setNameDropdownOpen(false);
+                          setCustomerModalOpen(true);
+                        }}
+                      >
+                        Add Customer
+                      </Button>
+                    </>
+                  )}
                 />
                 {formik.errors.name && formik.touched.name ? (
-                  <div className="text-red-600">{formik.errors.name}</div>
+                  <div className="mt-1 text-xs text-red-600">
+                    {formik.errors.name}
+                  </div>
                 ) : null}
               </div>
 
-              <div className="flex items-center gap-2 h-9 w-full">
-                <h2 className="font-semibold text-base mx-1">Contact :</h2>
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">
+                  Contact
+                </label>
                 <input
                   type="number"
                   required
                   name="contact"
                   value={formik.values.contact}
                   onChange={formik.handleChange}
-                  className="h-8 w-3/6 rounded-md  p-1 font-semibold "
+                  className="h-10 w-full rounded-lg border border-stroke bg-white px-3 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
                 />
               </div>
-              <div className="flex items-center gap-2 h-9 w-full">
-                <h2 className="font-semibold text-base mx-1">Address :</h2>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">
+                  Address
+                </label>
                 <input
                   type="text"
                   required
                   name="address"
                   value={formik.values.address}
                   onChange={formik.handleChange}
-                  className="h-8 w-3/6 rounded-md  p-1 font-semibold "
+                  className="h-10 w-full rounded-lg border border-stroke bg-white px-3 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
                 />
               </div>
-              <div className="flex items-center gap-2 h-9 w-full">
-                <h2 className="font-semibold text-base mx-1">TRN :</h2>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">
+                  TRN
+                </label>
                 <input
                   type="number"
                   required
                   name="trn"
                   value={formik.values.trn}
                   onChange={formik.handleChange}
-                  className="h-8 w-3/6 rounded-md  p-1 font-semibold "
+                  className="h-10 w-full rounded-lg border border-stroke bg-white px-3 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
                 />
               </div>
-              {/* {formik.errors.invoice && formik.touched.invoice ? <div className="text-red-600">{formik.errors.invoice}</div> : null} */}
 
-              <div className="flex items-center gap-2 h-9 w-full">
-                <h2 className="font-semibold text-base">Date :</h2>
-                <div className="flex space-x-4">
-                  <div className="w-full justify-center items-center flex">
-                    <input
-                      required
-                      name="date"
-                      type="date"
-                      value={formik.values.date}
-                      onChange={formik.handleChange}
-                      className="relative w-full h-8 outline-none text-gray-500 rounded-lg p-2.5 focus:shadow-md mx-2 font-semibold"
-                    />
-                    {formik.errors.date && formik.touched.date ? (
-                      <div className="text-red-600">{formik.errors.date}</div>
-                    ) : null}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">
+                  Date
+                </label>
+                <input
+                  required
+                  name="date"
+                  type="date"
+                  value={formik.values.date}
+                  onChange={formik.handleChange}
+                  className="h-10 w-full rounded-lg border border-stroke bg-white px-3 text-sm font-medium text-black outline-none transition focus:border-primary dark:border-strokedark dark:bg-form-input dark:text-white"
+                />
+                {formik.errors.date && formik.touched.date ? (
+                  <div className="mt-1 text-xs text-red-600">
+                    {formik.errors.date}
                   </div>
-                </div>
+                ) : null}
               </div>
             </div>
             <div className="w-full h-6 flex justify-between">
@@ -452,14 +570,14 @@ const Billing = () => {
                 <div className="text-red-600">{formik.errors.invoice}</div>
               ) : null}
             </div>
-            <div className="w-full h-4 font-bold text-xs gap-2 flex items-center justify-end">
-              VAT applied by company :{' '}
+            <div className="mt-4 flex w-full items-center justify-end gap-2 text-sm font-medium text-black dark:text-white">
+              VAT applied by company{' '}
               <CheckboxOne isChecked={vatFromMe} setIsChecked={setVatFromMe} />
             </div>
-            <div className="!bg-slate-100 !shadow-md !rounded !my-6">
+            <div className="my-4 overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
               <table className="min-w-max w-full table-auto ">
                 <thead>
-                  <tr className="!bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                  <tr className="bg-gray-2 text-xs font-semibold uppercase tracking-wide text-body dark:bg-meta-4 dark:text-bodydark">
                     <th className="py-3 px-6 text-right">
                       {formik?.values?.items?.length < 1 && (
                         <TiPlus
@@ -482,7 +600,7 @@ const Billing = () => {
                   {formik?.values?.items?.map((item, index) => (
                     <tr
                       key={index}
-                      className="!border-b !border-slate-300 !bg-gray-800 !hover:bg-gray-100"
+                      className="border-b border-stroke dark:border-strokedark"
                     >
                       <td className="py-3 px-6 text-right">
                         <TiPlus
@@ -582,7 +700,7 @@ const Billing = () => {
                       <td className="py-3 px-2 text-center ">
                         <input
                           type="number"
-                          className="form-input w-16 h-7 rounded text-center border border-slate-300 font-semibold"
+                          className="form-input h-9 w-20 rounded-lg border border-stroke text-center text-sm font-semibold outline-none focus:border-primary dark:border-strokedark"
                           required
                           onKeyDown={handleKeyDown}
                           name={`items[${index}].quantity`}
@@ -604,7 +722,7 @@ const Billing = () => {
                       <td className="py-3 px-2 text-left ">
                         <input
                           type="number"
-                          className="form-input w-16 h-7 rounded text-center border border-slate-300 font-semibold"
+                          className="form-input h-9 w-20 rounded-lg border border-stroke text-center text-sm font-semibold outline-none focus:border-primary dark:border-strokedark"
                           name={`items[${index}].rate`}
                           value={formik?.values?.items[index]?.rate}
                           onChange={formik.handleChange}
@@ -623,7 +741,7 @@ const Billing = () => {
                       <td className="items-center flex-col flex py-3 mx-5 text-left">
                         <input
                           type="number"
-                          className="form-input w-16 h-7 rounded text-center border border-slate-300 font-semibold"
+                          className="form-input h-9 w-20 rounded-lg border border-stroke text-center text-sm font-semibold outline-none focus:border-primary dark:border-strokedark"
                           name={`items[${index}].serviceCharge`}
                           value={formik?.values?.items[index]?.serviceCharge}
                           onChange={formik.handleChange}
@@ -680,7 +798,7 @@ const Billing = () => {
                     </tr>
                   ))}
 
-                  <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                  <tr className="bg-gray-2 text-sm text-body dark:bg-meta-4 dark:text-bodydark">
                     <td
                       colSpan={8}
                       className="py-3 px-6 text-right font-semibold"
@@ -691,7 +809,7 @@ const Billing = () => {
                       {formik?.values?.subTotal?.toFixed(2)} AED
                     </td>
                   </tr>
-                  <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                  <tr className="bg-gray-2 text-sm text-body dark:bg-meta-4 dark:text-bodydark">
                     <td
                       colSpan={8}
                       className="py-3 px-6 text-right font-semibold"
@@ -703,14 +821,14 @@ const Billing = () => {
                     </td>
                   </tr>
 
-                  <tr className="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
+                  <tr className="bg-gray-2 text-sm text-body dark:bg-meta-4 dark:text-bodydark">
                     <td colSpan={8} className="py-3 px-6 text-right font-bold">
                       Discount
                     </td>
                     <td className="py-3 px-2 text-left flex justify-center">
                       <input
                         type="number"
-                        className="form-input w-16 h-7 rounded text-center border font-semibold"
+                        className="form-input h-9 w-20 rounded-lg border border-stroke text-center text-sm font-semibold outline-none focus:border-primary dark:border-strokedark"
                         name="discount"
                         required
                         value={formik?.values?.discount}
@@ -720,7 +838,7 @@ const Billing = () => {
                     </td>
                   </tr>
 
-                  <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+                  <tr className="bg-primary/5 text-base text-primary">
                     <td colSpan={8} className="py-3 px-6 text-right font-bold">
                       Grand Total :
                     </td>
@@ -734,6 +852,14 @@ const Billing = () => {
           </form>
         </div>
       </Modal>
+
+      <CustomerModal
+        open={customerModalOpen}
+        zIndex={1100}
+        initialName={formik.values.name}
+        onClose={() => setCustomerModalOpen(false)}
+        onSaved={fillCustomer}
+      />
 
       <ServiceModal
         open={serviceModalOpen}

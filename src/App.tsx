@@ -25,6 +25,11 @@ import Billing from './pages/Billing';
 import ReportDetail from './pages/invoiceDetail';
 import InvoiceData from './pages/Invoice';
 import Service from './pages/Service';
+import Customer from './pages/Customer';
+import Proforma from './pages/Proforma';
+import Quotations from './pages/Quotation';
+import NewQuotation from './pages/Quotation/NewQuotation';
+import QuotationView from './pages/Quotation/QuotationView';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -83,6 +88,36 @@ function App() {
             <>
               <PageTitle title="Billing" />
               <Billing />
+            </>
+          }
+        />
+
+        <Route
+          path="/quotations"
+          element={
+            <>
+              <PageTitle title="Quotations" />
+              <Quotations />
+            </>
+          }
+        />
+
+        <Route
+          path="/quotations/new"
+          element={
+            <>
+              <PageTitle title="New Quotation" />
+              <NewQuotation />
+            </>
+          }
+        />
+
+        <Route
+          path="/quotation/:id"
+          element={
+            <>
+              <PageTitle title="Quotation" />
+              <QuotationView />
             </>
           }
         />
@@ -150,6 +185,36 @@ function App() {
             <Suspense fallback={<h1>Loading...</h1>}>
               <PageTitle title="Service" />
               <Service />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/proforma"
+          element={
+            <Suspense fallback={<h1>Loading...</h1>}>
+              <PageTitle title="Proforma Invoices" />
+              <Proforma />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/proforma/:id"
+          element={
+            <Suspense fallback={<h1>Loading...</h1>}>
+              <PageTitle title="Proforma Invoice" />
+              <InvoiceData variant="proforma" />
+            </Suspense>
+          }
+        />
+
+        <Route
+          path="/customer"
+          element={
+            <Suspense fallback={<h1>Loading...</h1>}>
+              <PageTitle title="Customer" />
+              <Customer />
             </Suspense>
           }
         />

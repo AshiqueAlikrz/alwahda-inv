@@ -1,6 +1,8 @@
 import axios from 'axios';
-import React, { useContext, useEffect, useState } from 'react';
-import { Button, Dropdown, Menu, Popconfirm, Table } from 'antd';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { Button, DatePicker, Dropdown, Menu, Popconfirm, Table } from 'antd';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import type { TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +16,11 @@ import {
   useGetUsersByIdQuery,
   useGetUsersQuery,
 } from '../../store/slice/reportSlice';
-import ButtonCard from '../../components/buttonCard';
+import Card from '../../components/ui/Card';
+import FilterBar from '../../components/ui/FilterBar';
+import CsvButton from '../../components/ui/CsvButton';
+import { CsvColumn, csvFilename } from '../../utils/csv';
+import { formatMoney } from '../../utils/money';
 
 interface Item {
   id: number;
@@ -69,28 +75,33 @@ const menu = (
 
 const columns: TableColumnsType<DataType> = [
   {
-    title: 'Serial No.',
+    title: '#',
     dataIndex: 'id',
+    width: 64,
   },
   {
-    title: 'Date',
+    title: 'Month',
     dataIndex: 'date',
   },
   {
     title: 'Expense',
     dataIndex: 'expense',
+    align: 'right',
   },
   {
     title: 'Profit',
     dataIndex: 'profit',
+    align: 'right',
   },
   {
     title: 'VAT',
     dataIndex: 'vat',
+    align: 'right',
   },
   {
     title: 'Discount',
     dataIndex: 'discount',
+    align: 'right',
   },
 
   //   {
@@ -113,12 +124,48 @@ const columns: TableColumnsType<DataType> = [
 //   // console.log('params', pagination, filters, sorter, extra);
 // };
 
+const monthlyCsvColumns: CsvColumn<any>[] = [
+  {
+    header: 'Month',
+    value: (report) =>
+      `${report.year}-${String(report.month).padStart(2, '0')}`,
+  },
+  { header: 'Expense', value: (report) => report.expense, money: true },
+  { header: 'Profit', value: (report) => report.profit, money: true },
+  { header: 'VAT', value: (report) => report.vat ?? 0, money: true },
+  { header: 'Discount', value: (report) => report.discount ?? 0, money: true },
+];
+
 const Calendar = () => {
   // const allInvoices = useSelector((state: any) => state.report.reportData);
   const navigate = useNavigate();
   // const { getInvoice } = useReportApi();
 
   const { data, error, isLoading } = useGetMonthlyReportsQuery();
+  const [monthRange, setMonthRange] = useState<
+    [Dayjs | null, Dayjs | null] | null
+  >(null);
+
+  const filteredReports = useMemo(() => {
+    const [from, to] = monthRange ?? [null, null];
+    return (data?.data ?? []).filter((report: any) => {
+      if (!from || !to) return true;
+      const month = dayjs(new Date(report.year, report.month - 1, 1));
+      return (
+        !month.isBefore(from.startOf('month')) &&
+        !month.isAfter(to.endOf('month'))
+      );
+    });
+  }, [data, monthRange]);
+
+  const csvName = csvFilename(
+    'monthly-report',
+    monthRange?.[0] && monthRange?.[1]
+      ? `${monthRange[0].format('YYYY-MM')}_to_${monthRange[1].format(
+          'YYYY-MM',
+        )}`
+      : dayjs().format('YYYY-MM-DD'),
+  );
 
   console.log('data, error, isLoading', data, error, isLoading);
 
@@ -133,14 +180,16 @@ const Calendar = () => {
   // };
 
   const formattedData = data
-    ? data?.data?.map((invoice: any, index: number) => {
+    ? filteredReports.map((invoice: any, index: number) => {
         return {
           id: index + 1,
-          date: invoice.month + '/' + invoice.year,
-          expense: Number(invoice.expense || 0).toFixed(2),
-          profit: Number(invoice.profit || 0).toFixed(2),
-          vat: Number(invoice.vat || 0).toFixed(2),
-          discount: Number(invoice.discount || 0).toFixed(2),
+          date: moment({ year: invoice.year, month: invoice.month - 1 }).format(
+            'MMMM YYYY',
+          ),
+          expense: formatMoney(invoice.expense),
+          profit: formatMoney(invoice.profit),
+          vat: formatMoney(invoice.vat),
+          discount: formatMoney(invoice.discount),
           //   paid: invoice?.paid,
           //   edit: <IoMdMore />,
           //   // tax: invoice?.items[0].tax,
@@ -156,17 +205,43 @@ const Calendar = () => {
     : [];
 
   return (
-    <Table<DataType>
-      loading={isLoading}
-      columns={columns}
-      dataSource={formattedData}
-      //   onChange={onChange}
-      //   onRow={(record) => ({
-      //     onClick: () => {
-      //       navigate(`/report/${record.id}`);
-      //     },
-      //   })}
-    />
+    <Card flush className="overflow-hidden">
+      <FilterBar
+        active={!!monthRange?.[0]}
+        onReset={() => setMonthRange(null)}
+        summary={
+          data
+            ? `${filteredReports.length} of ${data.data.length} months`
+            : undefined
+        }
+        actions={
+          <CsvButton
+            filename={csvName}
+            columns={monthlyCsvColumns}
+            rows={filteredReports}
+          />
+        }
+      >
+        <DatePicker.RangePicker
+          picker="month"
+          value={monthRange as any}
+          onChange={(range) => setMonthRange(range as any)}
+        />
+      </FilterBar>
+      <Table<DataType>
+        loading={isLoading}
+        columns={columns}
+        dataSource={formattedData}
+        scroll={{ x: 'max-content' }}
+        pagination={{ hideOnSinglePage: true, style: { margin: 16 } }}
+        //   onChange={onChange}
+        //   onRow={(record) => ({
+        //     onClick: () => {
+        //       navigate(`/report/${record.id}`);
+        //     },
+        //   })}
+      />
+    </Card>
   );
 };
 

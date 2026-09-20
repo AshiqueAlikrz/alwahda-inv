@@ -1,8 +1,10 @@
 import axios from 'axios';
-import React, { useContext, useEffect, useState } from 'react';
-import { Button, Dropdown, Menu, Popconfirm, Table } from 'antd';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { Button, Dropdown, Input, Menu, Popconfirm, Table } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import type { TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
+import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 // import { billingDataContext } from '../contexts/DataContext';
 import { IoMdMore } from 'react-icons/io';
@@ -15,7 +17,12 @@ import {
   useGetUsersByIdQuery,
   useGetUsersQuery,
 } from '../../store/slice/reportSlice';
-import ButtonCard from '../../components/buttonCard';
+import { IoAdd } from 'react-icons/io5';
+import Card from '../../components/ui/Card';
+import CsvButton from '../../components/ui/CsvButton';
+import FilterBar from '../../components/ui/FilterBar';
+import { CsvColumn, csvFilename } from '../../utils/csv';
+import { formatMoney } from '../../utils/money';
 import ServiceModal from '../../components/ServiceModal';
 import { toast } from 'react-toastify';
 
@@ -39,6 +46,11 @@ export interface DataType {
   id: string;
   price: number;
 }
+const serviceCsvColumns: CsvColumn<any>[] = [
+  { header: 'Name', value: (service) => service.name },
+  { header: 'Price (AED)', value: (service) => service.price, money: true },
+];
+
 const handleMenuClick = (e: any) => {
   // Handle your edit or delete action here
 };
@@ -68,6 +80,7 @@ const Service = () => {
     price: 0,
   });
   const [serviceId, setServiceId] = useState('');
+  const [search, setSearch] = useState('');
 
   const handleDelete = async () => {
     const response = await deleteService({ serviceId });
@@ -107,15 +120,21 @@ const Service = () => {
     {
       title: 'Name',
       dataIndex: 'name',
+      render: (name) => (
+        <span className="font-medium text-black dark:text-white">{name}</span>
+      ),
     },
     {
       title: 'Price (AED)',
       dataIndex: 'price',
+      align: 'right',
+      render: (price) => formatMoney(price),
     },
 
     {
       title: '',
       dataIndex: 'edit',
+      width: 64,
       render: (_, record) => (
         <Dropdown overlay={menu} trigger={['click']}>
           <Button
@@ -140,8 +159,19 @@ const Service = () => {
     toast.error('Error fetching services');
   }
 
+  const filteredServices = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return (data?.data ?? []).filter(
+      (service: any) =>
+        !query ||
+        String(service.name ?? '')
+          .toLowerCase()
+          .includes(query),
+    );
+  }, [data, search]);
+
   const formattedData = data
-    ? data?.data?.map((invoice: any, index: number) => {
+    ? filteredServices.map((invoice: any, index: number) => {
         return {
           key: index,
           id: invoice._id,
@@ -173,20 +203,56 @@ const Service = () => {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex w-full justify-end">
-        <Button type="primary" onClick={showModal}>
-          Add Service
-        </Button>
-      </div>
-      <Table<DataType>
-        loading={isLoading}
-        columns={columns}
-        dataSource={formattedData}
-        onChange={onChange}
-        onRow={(record) => ({
-          onClick: () => {},
-        })}
-      />
+      <Card
+        title="Services"
+        subtitle={`${data?.data?.length ?? 0} ${
+          data?.data?.length === 1 ? 'service' : 'services'
+        }`}
+        extra={
+          <Button type="primary" icon={<IoAdd size={18} />} onClick={showModal}>
+            Add Service
+          </Button>
+        }
+        flush
+        className="overflow-hidden"
+      >
+        <FilterBar
+          active={!!search.trim()}
+          onReset={() => setSearch('')}
+          summary={
+            data
+              ? `${filteredServices.length} of ${data.data.length} services`
+              : undefined
+          }
+          actions={
+            <CsvButton
+              filename={csvFilename('services', dayjs().format('YYYY-MM-DD'))}
+              columns={serviceCsvColumns}
+              rows={filteredServices}
+            />
+          }
+        >
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder="Search services"
+            style={{ width: 260 }}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </FilterBar>
+        <Table<DataType>
+          loading={isLoading}
+          columns={columns}
+          dataSource={formattedData}
+          onChange={onChange}
+          scroll={{ x: 'max-content' }}
+          pagination={{ hideOnSinglePage: true, style: { margin: 16 } }}
+          onRow={(record) => ({
+            onClick: () => {},
+          })}
+        />
+      </Card>
 
       <ServiceModal
         open={isModalOpen}

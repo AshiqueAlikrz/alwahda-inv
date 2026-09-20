@@ -1,23 +1,54 @@
 import React from 'react';
+import { IoArrowForward } from 'react-icons/io5';
 
 type props = {
   className?: string;
   text?: string;
+  description?: string;
+  icon?: React.ReactNode;
+  accent?: string;
   onClick?: any;
 };
-const ButtonCard = ({ className, text, onClick }: props) => {
+
+const ButtonCard = ({
+  className = '',
+  text,
+  description,
+  icon,
+  accent = '#3C50E0',
+  onClick,
+}: props) => {
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className={` group overflow-hidden  bg-neutral-50 rounded-xl bg-gradient-to-tr from-sky-800 via-cyan-700 to-cyan-500 text-white ${className}`}
+      className={`group flex w-full items-start gap-4 rounded-2xl border border-stroke bg-white p-6 text-left shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-strokedark dark:bg-boxdark ${className}`}
     >
-      <div className="before:duration-700 before:absolute before:w-28 before:h-28 before:bg-transparent before:blur-none before:border-8 before:opacity-50 before:rounded-full before:-left-4 before:-top-12 w-64 h-48  flex flex-col justify-between relative z-10 group-hover:before:top-28 group-hover:before:left-44 group-hover:before:scale-125 group-hover:before:blur">
-        <div className="text p-3 flex flex-col justify-center gap-2 items-center h-full w-full">
-          <span className="font-bold text-2xl text-white">{text}</span>
-          <p className="subtitle">Click to show {text}</p>
-        </div>
-      </div>
-    </div>
+      {icon && (
+        <span
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
+          style={{ color: accent, backgroundColor: `${accent}1f` }}
+        >
+          {icon}
+        </span>
+      )}
+
+      <span className="min-w-0 flex-1">
+        <span className="block text-lg font-semibold text-black dark:text-white">
+          {text}
+        </span>
+        {description && (
+          <span className="mt-1 block text-sm text-body dark:text-bodydark">
+            {description}
+          </span>
+        )}
+      </span>
+
+      <IoArrowForward
+        size={18}
+        className="mt-1 shrink-0 text-body duration-200 group-hover:translate-x-1 group-hover:text-primary dark:text-bodydark"
+      />
+    </button>
   );
 };
 

@@ -1,5 +1,4 @@
 import moment from 'moment';
-import Breadcrumb from '../components/Breadcrumbs/Breadcrumb';
 import UserImage from '../images/user/user-icon-member-login-isolated-vector.jpg';
 import useLocalStorage from '../hooks/useLocalStorage';
 
@@ -52,8 +51,6 @@ const Profile = () => {
 
   return (
     <>
-      <Breadcrumb pageName="Profile" />
-
       <div className="mb-6 flex flex-col items-center gap-5 rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:flex-row">
         <span className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-gray-300">
           <img

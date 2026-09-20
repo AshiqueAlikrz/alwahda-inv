@@ -6,6 +6,7 @@ import {
   useGetDailyReportsQuery,
   useGetMonthlyReportsQuery,
 } from '../../store/slice/reportSlice';
+import { formatMoney as money } from '../../utils/money';
 
 const MONTHS = 12;
 const DAYS = 30;
@@ -36,12 +37,6 @@ export interface DailyRow {
   label: string;
   profit: number;
 }
-
-const money = (value: number) =>
-  value.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 const axisMoney = (value: number) =>
   Number(value).toLocaleString(undefined, {
@@ -228,7 +223,7 @@ const ChartCard = ({
 
   return (
     <div
-      className={`min-w-0 rounded-xl border border-stroke bg-white p-5 shadow-default dark:border-strokedark dark:bg-boxdark ${className}`}
+      className={`min-w-0 rounded-2xl border border-stroke bg-white p-5 shadow-sm dark:border-strokedark dark:bg-boxdark ${className}`}
     >
       <div className="mb-2 flex items-start justify-between gap-3">
         <div>
@@ -332,7 +327,7 @@ export const DashboardChartsView = ({
   const shared = { isLoading, isFetching, isError };
 
   return (
-    <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
+    <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:gap-6">
       <ChartCard
         {...shared}
         className="col-span-12 xl:col-span-6"

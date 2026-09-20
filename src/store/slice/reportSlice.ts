@@ -6,7 +6,14 @@ const environment = import.meta.env;
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Invoices', 'Service', 'userItems'],
+  tagTypes: [
+    'Invoices',
+    'Service',
+    'userItems',
+    'Customer',
+    'Quotations',
+    'Proforma',
+  ],
   endpoints: (builder) => ({
     getUsers: builder.query<any, void>({
       query: () => '/reports/getInvoice',
@@ -15,6 +22,30 @@ export const apiSlice = createApi({
     getUsersById: builder.query<any, string | undefined>({
       query: (id) => `/reports/items/${id}`,
       providesTags: ['userItems'],
+    }),
+    createQuotation: builder.mutation<
+      any,
+      {
+        client: string;
+        date: string;
+        items: { description: string; qty: number; price: number }[];
+        terms: string[];
+      }
+    >({
+      query: (body) => ({
+        url: '/reports/createquotation',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Quotations'],
+    }),
+    getQuotations: builder.query<any, void>({
+      query: () => '/reports/quotations',
+      providesTags: ['Quotations'],
+    }),
+    getQuotationById: builder.query<any, string | undefined>({
+      query: (id) => `/reports/quotation/${id}`,
+      providesTags: ['Quotations'],
     }),
     getInvoiceById: builder.query<void, string | undefined>({
       query: (id) => `/reports/invoice/${id}`,
@@ -26,7 +57,7 @@ export const apiSlice = createApi({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['Invoices'],
+      invalidatesTags: ['Invoices', 'Customer'],
     }),
     createService: builder.mutation<any, Omit<any, 'id'>>({
       query: (body) => ({
@@ -75,6 +106,55 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Invoices'],
     }),
+    getProformas: builder.query<any, void>({
+      query: () => '/reports/proformas',
+      providesTags: ['Proforma'],
+    }),
+    getProformaById: builder.query<any, string | undefined>({
+      query: (id) => `/reports/proformas/${id}`,
+      providesTags: ['Proforma'],
+    }),
+    createProforma: builder.mutation<any, Omit<any, 'id'>>({
+      query: (body) => ({
+        url: '/reports/proformas',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Proforma'],
+    }),
+    convertProforma: builder.mutation<
+      any,
+      { proformaId: string; date: string }
+    >({
+      query: ({ proformaId, date }) => ({
+        url: `/reports/proformas/${proformaId}/convert`,
+        method: 'POST',
+        body: { date },
+      }),
+      invalidatesTags: ['Proforma', 'Invoices', 'Customer'],
+    }),
+    getAllCustomers: builder.query<any, void>({
+      query: () => '/reports/customers',
+      providesTags: ['Customer'],
+    }),
+    createCustomer: builder.mutation<any, Omit<any, 'id'>>({
+      query: (body) => ({
+        url: '/reports/customers',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Customer'],
+    }),
+    sendInvoiceEmail: builder.mutation<
+      any,
+      { invoiceId: string; email: string; pdfBase64: string }
+    >({
+      query: ({ invoiceId, ...body }) => ({
+        url: `/reports/invoice/${invoiceId}/send-email`,
+        method: 'POST',
+        body,
+      }),
+    }),
     updateService: builder.mutation<any, { serviceId: string; body: any }>({
       query: ({ serviceId, body }) => ({
         url: `/reports/editservice/${serviceId}`,
@@ -97,6 +177,9 @@ export const {
   useGetUsersQuery,
   useGetUsersByIdQuery,
   useGetInvoiceByIdQuery,
+  useCreateQuotationMutation,
+  useGetQuotationsQuery,
+  useGetQuotationByIdQuery,
   useCreateInvoiceMutation,
   useGetDailyReportsQuery,
   useLazyGetDailyReportsQuery,
@@ -108,6 +191,13 @@ export const {
   useCreateServiceMutation,
   useUpdateInvoiceMutation,
   useUpdateServiceMutation,
+  useSendInvoiceEmailMutation,
+  useGetAllCustomersQuery,
+  useGetProformasQuery,
+  useGetProformaByIdQuery,
+  useCreateProformaMutation,
+  useConvertProformaMutation,
+  useCreateCustomerMutation,
   useDeleteServiceMutation,
 } = apiSlice;
 

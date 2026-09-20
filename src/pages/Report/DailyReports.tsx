@@ -1,6 +1,8 @@
 import axios from 'axios';
-import React from 'react';
-import { Button, Dropdown, Menu, Popconfirm, Table } from 'antd';
+import React, { useMemo, useState } from 'react';
+import { Button, DatePicker, Dropdown, Menu, Popconfirm, Table } from 'antd';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import type { TableColumnsType, TableProps } from 'antd';
 import moment from 'moment';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +16,11 @@ import {
   useGetUsersByIdQuery,
   useGetUsersQuery,
 } from '../../store/slice/reportSlice';
-import ButtonCard from '../../components/buttonCard';
+import Card from '../../components/ui/Card';
+import FilterBar from '../../components/ui/FilterBar';
+import CsvButton from '../../components/ui/CsvButton';
+import { CsvColumn, csvFilename } from '../../utils/csv';
+import { formatMoney } from '../../utils/money';
 
 interface Item {
   id: number;
@@ -69,8 +75,9 @@ const menu = (
 
 const columns: TableColumnsType<DataType> = [
   {
-    title: 'Serial No.',
+    title: '#',
     dataIndex: 'id',
+    width: 64,
   },
   {
     title: 'Date',
@@ -79,18 +86,22 @@ const columns: TableColumnsType<DataType> = [
   {
     title: 'Expense',
     dataIndex: 'expense',
+    align: 'right',
   },
   {
     title: 'Profit',
     dataIndex: 'profit',
+    align: 'right',
   },
   {
     title: 'VAT',
     dataIndex: 'vat',
+    align: 'right',
   },
   {
     title: 'Discount',
     dataIndex: 'discount',
+    align: 'right',
   },
 
   //   {
@@ -113,13 +124,46 @@ const columns: TableColumnsType<DataType> = [
 //   // console.log('params', pagination, filters, sorter, extra);
 // };
 
+const dailyCsvColumns: CsvColumn<any>[] = [
+  {
+    header: 'Date',
+    value: (report) => moment.utc(report.date).format('YYYY-MM-DD'),
+  },
+  { header: 'Expense', value: (report) => report.expense, money: true },
+  { header: 'Profit', value: (report) => report.profit, money: true },
+  { header: 'VAT', value: (report) => report.vat ?? 0, money: true },
+  { header: 'Discount', value: (report) => report.discount ?? 0, money: true },
+];
+
 const Calendar = () => {
   // const allInvoices = useSelector((state: any) => state.report.reportData);
   //   const navigate = useNavigate();
   // const { getInvoice } = useReportApi();
 
   const { data, error, isLoading } = useGetDailyReportsQuery();
+  const [dateRange, setDateRange] = useState<
+    [Dayjs | null, Dayjs | null] | null
+  >(null);
 
+  const filteredReports = useMemo(() => {
+    const [from, to] = dateRange ?? [null, null];
+    return (data?.data ?? []).filter((report: any) => {
+      if (!from || !to) return true;
+      const date = dayjs(report.date);
+      return (
+        !date.isBefore(from.startOf('day')) && !date.isAfter(to.endOf('day'))
+      );
+    });
+  }, [data, dateRange]);
+
+  const csvName = csvFilename(
+    'daily-report',
+    dateRange?.[0] && dateRange?.[1]
+      ? `${dateRange[0].format('YYYY-MM-DD')}_to_${dateRange[1].format(
+          'YYYY-MM-DD',
+        )}`
+      : dayjs().format('YYYY-MM-DD'),
+  );
 
   // useEffect(() => {
   //   if (!data?.data?.length) {
@@ -132,14 +176,14 @@ const Calendar = () => {
   // };
 
   const formattedData = data
-    ? data?.data?.map((invoice: any, index: number) => {
+    ? filteredReports.map((invoice: any, index: number) => {
         return {
           id: index + 1,
           date: moment(invoice.date).format('DD-MM-YYYY'),
-          expense: invoice.expense.toFixed(2),
-          profit: invoice.profit.toFixed(2),
-          vat: invoice.vat ? invoice.vat.toFixed(2) : 0,
-          discount: invoice.discount ? invoice.discount : 0,
+          expense: formatMoney(invoice.expense),
+          profit: formatMoney(invoice.profit),
+          vat: formatMoney(invoice.vat),
+          discount: formatMoney(invoice.discount),
           //   paid: invoice?.paid,
           //   edit: <IoMdMore />,
           //   // tax: invoice?.items[0].tax,
@@ -155,17 +199,42 @@ const Calendar = () => {
     : [];
 
   return (
-    <Table<DataType>
-      loading={isLoading}
-      columns={columns}
-      dataSource={formattedData}
-      //   onChange={onChange}
-      //   onRow={(record) => ({
-      //     onClick: () => {
-      //       navigate(`/report/${record.id}`);
-      //     },
-      //   })}
-    />
+    <Card flush className="overflow-hidden">
+      <FilterBar
+        active={!!dateRange?.[0]}
+        onReset={() => setDateRange(null)}
+        summary={
+          data
+            ? `${filteredReports.length} of ${data.data.length} days`
+            : undefined
+        }
+        actions={
+          <CsvButton
+            filename={csvName}
+            columns={dailyCsvColumns}
+            rows={filteredReports}
+          />
+        }
+      >
+        <DatePicker.RangePicker
+          value={dateRange as any}
+          onChange={(range) => setDateRange(range as any)}
+        />
+      </FilterBar>
+      <Table<DataType>
+        loading={isLoading}
+        columns={columns}
+        dataSource={formattedData}
+        scroll={{ x: 'max-content' }}
+        pagination={{ hideOnSinglePage: true, style: { margin: 16 } }}
+        //   onChange={onChange}
+        //   onRow={(record) => ({
+        //     onClick: () => {
+        //       navigate(`/report/${record.id}`);
+        //     },
+        //   })}
+      />
+    </Card>
   );
 };
 

@@ -16,7 +16,30 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <Provider store={store}>
       <Router>
-        <ConfigProvider theme={{ token: { fontFamily: 'Inter, sans-serif' } }}>
+        <ConfigProvider
+          theme={{
+            token: {
+              fontFamily: 'Inter, sans-serif',
+              colorPrimary: '#3C50E0',
+              colorText: '#1C2434',
+              colorTextSecondary: '#64748B',
+              borderRadius: 10,
+            },
+            components: {
+              Table: {
+                headerBg: '#F7F9FC',
+                headerColor: '#64748B',
+                headerSplitColor: 'transparent',
+                rowHoverBg: '#F8FAFF',
+                borderColor: '#EEF2F6',
+                cellPaddingBlock: 14,
+                cellPaddingInline: 16,
+              },
+              Button: { fontWeight: 500 },
+              Modal: { borderRadiusLG: 16 },
+            },
+          }}
+        >
           <App />
         </ConfigProvider>
         <ToastContainer />

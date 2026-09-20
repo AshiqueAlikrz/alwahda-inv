@@ -14,6 +14,11 @@ import {
   useGetUsersQuery,
 } from '../../store/slice/reportSlice';
 import ButtonCard from '../../components/buttonCard';
+import {
+  IoCalendarOutline,
+  IoDocumentTextOutline,
+  IoStatsChartOutline,
+} from 'react-icons/io5';
 
 interface Item {
   id: number;
@@ -160,46 +165,44 @@ const Calendar = () => {
 
   const reportsButton = [
     {
-      gradientColor:
-        '!bg-gradient-to-tr !from-gray-900 !via-gray-800 !to-slate-700',
       text: 'All Reports',
+      description: 'Every invoice with its totals, VAT and profit.',
+      accent: '#2a78d6',
+      icon: <IoDocumentTextOutline />,
       onClick: function Click() {
         navigate('/report/allreports');
       },
     },
     {
-      gradientColor:
-        '!bg-gradient-to-tr !from-orange-500 !via-rose-600 !to-red-700',
       text: 'Daily Reports',
+      description: 'Expense, profit, VAT and discount for each day.',
+      accent: '#eb6834',
+      icon: <IoCalendarOutline />,
       onClick: function Click() {
         navigate('/report/dailyreports');
       },
     },
     {
-      gradientColor:
-        '!bg-gradient-to-tr !from-cyan-600 !via-teal-500 !to-emerald-500',
       text: 'Monthly Reports',
+      description: 'The same totals rolled up month by month.',
+      accent: '#1baf7a',
+      icon: <IoStatsChartOutline />,
       onClick: function Click() {
         navigate('/report/montlyreports');
       },
     },
-    // {
-    //   gradientColor:
-    //     '!bg-gradient-to-tr !from-purple-600 !via-fuchsia-600 !to-pink-500',
-    //   text: 'Yearly Reports',
-    //   onClick: function Click() {
-    //     navigate('/yearly');
-    //   },
-    // },
   ];
 
   return (
-    <div className="w-full h-full grid grid-cols-3 gap-3 ">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:gap-6">
       {reportsButton.map((data) => {
         return (
           <ButtonCard
-            className={data.gradientColor}
+            key={data.text}
             text={data.text}
+            description={data.description}
+            icon={data.icon}
+            accent={data.accent}
             onClick={data.onClick}
           />
         );
