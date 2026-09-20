@@ -7,10 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import moment from 'moment';
 import { IoAdd, IoDocumentTextOutline } from 'react-icons/io5';
 import Card from '../../components/ui/Card';
-import CsvButton from '../../components/ui/CsvButton';
+import XlsxButton from '../../components/ui/XlsxButton';
 import FilterBar from '../../components/ui/FilterBar';
 import { useGetQuotationsQuery } from '../../store/slice/reportSlice';
-import { CsvColumn, csvFilename } from '../../utils/csv';
+import { XlsxColumn, xlsxFilename } from '../../utils/xlsx';
 import { formatMoney } from '../../utils/money';
 
 interface QuotationRow {
@@ -53,7 +53,7 @@ const columns: TableColumnsType<QuotationRow> = [
   { title: 'Created by', dataIndex: 'createdBy' },
 ];
 
-const quotationCsvColumns: CsvColumn<any>[] = [
+const quotationXlsxColumns: XlsxColumn<any>[] = [
   { header: 'Quotation No', value: (quotation) => quotation.quoteNo },
   {
     header: 'Date',
@@ -113,7 +113,7 @@ const Quotations = () => {
 
   const filterActive = !!search.trim() || !!dateRange?.[0];
 
-  const csvName = csvFilename(
+  const xlsxName = xlsxFilename(
     'quotations',
     dateRange?.[0] && dateRange?.[1]
       ? `${dateRange[0].format('YYYY-MM-DD')}_to_${dateRange[1].format(
@@ -168,9 +168,9 @@ const Quotations = () => {
         }}
         summary={data ? `${filtered.length} of ${all.length}` : undefined}
         actions={
-          <CsvButton
-            filename={csvName}
-            columns={quotationCsvColumns}
+          <XlsxButton
+            filename={xlsxName}
+            columns={quotationXlsxColumns}
             rows={filtered}
           />
         }

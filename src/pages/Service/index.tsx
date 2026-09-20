@@ -19,9 +19,9 @@ import {
 } from '../../store/slice/reportSlice';
 import { IoAdd } from 'react-icons/io5';
 import Card from '../../components/ui/Card';
-import CsvButton from '../../components/ui/CsvButton';
+import XlsxButton from '../../components/ui/XlsxButton';
 import FilterBar from '../../components/ui/FilterBar';
-import { CsvColumn, csvFilename } from '../../utils/csv';
+import { XlsxColumn, xlsxFilename } from '../../utils/xlsx';
 import { formatMoney } from '../../utils/money';
 import ServiceModal from '../../components/ServiceModal';
 import { toast } from 'react-toastify';
@@ -46,7 +46,7 @@ export interface DataType {
   id: string;
   price: number;
 }
-const serviceCsvColumns: CsvColumn<any>[] = [
+const serviceXlsxColumns: XlsxColumn<any>[] = [
   { header: 'Name', value: (service) => service.name },
   { header: 'Price (AED)', value: (service) => service.price, money: true },
 ];
@@ -225,9 +225,9 @@ const Service = () => {
               : undefined
           }
           actions={
-            <CsvButton
-              filename={csvFilename('services', dayjs().format('YYYY-MM-DD'))}
-              columns={serviceCsvColumns}
+            <XlsxButton
+              filename={xlsxFilename('services', dayjs().format('YYYY-MM-DD'))}
+              columns={serviceXlsxColumns}
               rows={filteredServices}
             />
           }

@@ -29,8 +29,8 @@ import {
 import Card from '../../components/ui/Card';
 import FilterBar from '../../components/ui/FilterBar';
 import PaidPill from '../../components/ui/PaidPill';
-import CsvButton from '../../components/ui/CsvButton';
-import { CsvColumn, csvFilename } from '../../utils/csv';
+import XlsxButton from '../../components/ui/XlsxButton';
+import { XlsxColumn, xlsxFilename } from '../../utils/xlsx';
 import { formatMoney } from '../../utils/money';
 import { vatPaidByLabel } from '../../utils/vat';
 
@@ -57,7 +57,7 @@ export interface DataType {
 }
 
 // one row per invoice, with the same figures as the table but as plain numbers
-const invoiceCsvColumns: CsvColumn<any>[] = [
+const invoiceXlsxColumns: XlsxColumn<any>[] = [
   { header: 'Invoice No', value: (invoice) => invoice.invoice_number },
   {
     header: 'Date',
@@ -261,8 +261,8 @@ const Calendar = () => {
     });
   }, [data, search, dateRange, paidFilter]);
 
-  // the file name says which slice it holds, e.g. invoices_unpaid_2026-09-01_to_2026-09-20.csv
-  const csvName = csvFilename(
+  // the file name says which slice it holds, e.g. invoices_unpaid_2026-09-01_to_2026-09-20.xlsx
+  const xlsxName = xlsxFilename(
     'invoices',
     paidFilter !== 'all' && paidFilter,
     dateRange?.[0] && dateRange?.[1]
@@ -307,9 +307,9 @@ const Calendar = () => {
               : undefined
           }
           actions={
-            <CsvButton
-              filename={csvName}
-              columns={invoiceCsvColumns}
+            <XlsxButton
+              filename={xlsxName}
+              columns={invoiceXlsxColumns}
               rows={filteredInvoices}
             />
           }

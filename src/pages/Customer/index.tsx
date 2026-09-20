@@ -7,8 +7,8 @@ import { toast } from 'react-toastify';
 import dayjs from 'dayjs';
 import { useGetAllCustomersQuery } from '../../store/slice/reportSlice';
 import Card from '../../components/ui/Card';
-import CsvButton from '../../components/ui/CsvButton';
-import { CsvColumn, csvFilename } from '../../utils/csv';
+import XlsxButton from '../../components/ui/XlsxButton';
+import { XlsxColumn, xlsxFilename } from '../../utils/xlsx';
 import CustomerModal from '../../components/CustomerModal';
 
 interface CustomerRow {
@@ -21,7 +21,7 @@ interface CustomerRow {
   invoices: number;
 }
 
-const customerCsvColumns: CsvColumn<CustomerRow>[] = [
+const customerXlsxColumns: XlsxColumn<CustomerRow>[] = [
   { header: 'Name', value: (customer) => customer.name },
   { header: 'Contact', value: (customer) => customer.contact },
   { header: 'TRN', value: (customer) => customer.trn },
@@ -92,9 +92,9 @@ const Customer = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <CsvButton
-              filename={csvFilename('customers', dayjs().format('YYYY-MM-DD'))}
-              columns={customerCsvColumns}
+            <XlsxButton
+              filename={xlsxFilename('customers', dayjs().format('YYYY-MM-DD'))}
+              columns={customerXlsxColumns}
               rows={rows}
             />
             <Button

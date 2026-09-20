@@ -16,8 +16,8 @@ import {
 } from '../../store/slice/reportSlice';
 import Card from '../../components/ui/Card';
 import FilterBar from '../../components/ui/FilterBar';
-import CsvButton from '../../components/ui/CsvButton';
-import { CsvColumn, csvFilename } from '../../utils/csv';
+import XlsxButton from '../../components/ui/XlsxButton';
+import { XlsxColumn, xlsxFilename } from '../../utils/xlsx';
 import { formatMoney } from '../../utils/money';
 
 interface Item {
@@ -90,7 +90,7 @@ const columns: TableColumnsType<DataType> = [
 //   // console.log('params', pagination, filters, sorter, extra);
 // };
 
-const dailyCsvColumns: CsvColumn<any>[] = [
+const dailyXlsxColumns: XlsxColumn<any>[] = [
   {
     header: 'Date',
     value: (report) => moment.utc(report.date).format('YYYY-MM-DD'),
@@ -122,7 +122,7 @@ const Calendar = () => {
     });
   }, [data, dateRange]);
 
-  const csvName = csvFilename(
+  const xlsxName = xlsxFilename(
     'daily-report',
     dateRange?.[0] && dateRange?.[1]
       ? `${dateRange[0].format('YYYY-MM-DD')}_to_${dateRange[1].format(
@@ -175,9 +175,9 @@ const Calendar = () => {
             : undefined
         }
         actions={
-          <CsvButton
-            filename={csvName}
-            columns={dailyCsvColumns}
+          <XlsxButton
+            filename={xlsxName}
+            columns={dailyXlsxColumns}
             rows={filteredReports}
           />
         }

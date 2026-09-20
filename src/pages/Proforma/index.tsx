@@ -8,8 +8,8 @@ import { toast } from 'react-toastify';
 import { useGetProformasQuery } from '../../store/slice/reportSlice';
 import Card from '../../components/ui/Card';
 import FilterBar from '../../components/ui/FilterBar';
-import CsvButton from '../../components/ui/CsvButton';
-import { CsvColumn, csvFilename } from '../../utils/csv';
+import XlsxButton from '../../components/ui/XlsxButton';
+import { XlsxColumn, xlsxFilename } from '../../utils/xlsx';
 import { formatMoney } from '../../utils/money';
 
 type StatusFilter = 'all' | 'open' | 'converted';
@@ -53,7 +53,7 @@ const columns: TableColumnsType<ProformaRow> = [
   },
 ];
 
-const proformaCsvColumns: CsvColumn<any>[] = [
+const proformaXlsxColumns: XlsxColumn<any>[] = [
   { header: 'Proforma No', value: (p) => p.proformaNo },
   { header: 'Date', value: (p) => moment.utc(p.date).format('YYYY-MM-DD') },
   { header: 'Customer', value: (p) => p.name },
@@ -76,7 +76,7 @@ const Proforma = () => {
 
   const all: any[] = data?.data ?? [];
 
-  // the filtered documents; the table shows them formatted, the CSV gets the raw values
+  // the filtered documents; the table shows them formatted, the Excel file gets the raw values
   const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
     return all
@@ -122,13 +122,13 @@ const Proforma = () => {
         }}
         summary={data ? `${rows.length} of ${all.length}` : undefined}
         actions={
-          <CsvButton
-            filename={csvFilename(
+          <XlsxButton
+            filename={xlsxFilename(
               'proforma-invoices',
               status !== 'all' && status,
               moment().format('YYYY-MM-DD'),
             )}
-            columns={proformaCsvColumns}
+            columns={proformaXlsxColumns}
             rows={filtered}
           />
         }

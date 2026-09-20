@@ -16,8 +16,8 @@ import {
 } from '../../store/slice/reportSlice';
 import Card from '../../components/ui/Card';
 import FilterBar from '../../components/ui/FilterBar';
-import CsvButton from '../../components/ui/CsvButton';
-import { CsvColumn, csvFilename } from '../../utils/csv';
+import XlsxButton from '../../components/ui/XlsxButton';
+import { XlsxColumn, xlsxFilename } from '../../utils/xlsx';
 import { formatMoney } from '../../utils/money';
 
 interface Item {
@@ -90,7 +90,7 @@ const columns: TableColumnsType<DataType> = [
 //   // console.log('params', pagination, filters, sorter, extra);
 // };
 
-const monthlyCsvColumns: CsvColumn<any>[] = [
+const monthlyXlsxColumns: XlsxColumn<any>[] = [
   {
     header: 'Month',
     value: (report) =>
@@ -124,7 +124,7 @@ const Calendar = () => {
     });
   }, [data, monthRange]);
 
-  const csvName = csvFilename(
+  const xlsxName = xlsxFilename(
     'monthly-report',
     monthRange?.[0] && monthRange?.[1]
       ? `${monthRange[0].format('YYYY-MM')}_to_${monthRange[1].format(
@@ -181,9 +181,9 @@ const Calendar = () => {
             : undefined
         }
         actions={
-          <CsvButton
-            filename={csvName}
-            columns={monthlyCsvColumns}
+          <XlsxButton
+            filename={xlsxName}
+            columns={monthlyXlsxColumns}
             rows={filteredReports}
           />
         }

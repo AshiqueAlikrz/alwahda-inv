@@ -9,7 +9,7 @@ interface FilterBarProps {
   // Reset is disabled while no filter is active
   active: boolean;
   onReset: () => void;
-  // buttons pinned to the right, e.g. a CSV download
+  // buttons pinned to the right, e.g. an Excel download
   actions?: React.ReactNode;
 }
 
