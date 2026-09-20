@@ -52,36 +52,36 @@ const SignIn: React.FC = () => {
   });
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-slate-900 flex items-center justify-center">
+    <div className="relative min-h-screen w-full overflow-hidden bg-slate-50 flex items-center justify-center">
       {/* --- Animated Background Decorative Elements --- */}
-      <div className="absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-blue-600/20 blur-[120px] animate-pulse"></div>
+      <div className="absolute top-[-10%] left-[-10%] h-[500px] w-[500px] rounded-full bg-blue-300/30 blur-[120px] animate-pulse"></div>
       <div
-        className="absolute bottom-[-10%] right-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse"
+        className="absolute bottom-[-10%] right-[-10%] h-[500px] w-[500px] rounded-full bg-indigo-300/30 blur-[120px] animate-pulse"
         style={{ animationDelay: '2s' }}
       ></div>
 
-      <div className="container relative z-10 flex h-[90vh] max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur-md">
+      <div className="container relative z-10 flex h-[90vh] max-w-6xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60">
         {/* Left Side: Branding & Info */}
-        <div className="hidden w-1/2 flex-col justify-between p-12 xl:flex bg-gradient-to-br from-blue-600/10 to-transparent">
+        <div className="hidden w-1/2 flex-col justify-between p-12 xl:flex border-r border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50/40">
           <div>
             <div className="flex items-center gap-2 mb-8">
               <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40">
                 <span className="text-white font-bold text-xl">K</span>
               </div>
-              <span className="text-2xl font-bold tracking-tight text-white">
-                KRZ <span className="text-blue-500">ERP</span>
+              <span className="text-2xl font-bold tracking-tight text-slate-900">
+                KRZ <span className="text-blue-600">ERP</span>
               </span>
             </div>
 
-            <h1 className="text-5xl font-extrabold leading-tight text-white">
+            <h1 className="text-5xl font-extrabold leading-tight text-slate-900">
               The Next Gen <br />
-              <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 Typing Center
               </span>{' '}
               <br />
               Management.
             </h1>
-            <p className="mt-6 max-w-md text-lg text-slate-400 leading-relaxed">
+            <p className="mt-6 max-w-md text-lg text-slate-600 leading-relaxed">
               Streamline your workflow, manage documents, and scale your
               business with our ultra-fast smart solutions.
             </p>
@@ -94,11 +94,11 @@ const SignIn: React.FC = () => {
         </div>
 
         {/* Right Side: Login Form */}
-        <div className="flex w-full flex-col justify-center p-8 md:p-16 xl:w-1/2 bg-white/5">
+        <div className="flex w-full flex-col justify-center p-8 md:p-16 xl:w-1/2 bg-white">
           <div className="mx-auto w-full max-w-md">
             <div className="mb-10">
-              <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
-              <p className="mt-2 text-slate-400">
+              <h2 className="text-3xl font-bold text-slate-900">Welcome Back</h2>
+              <p className="mt-2 text-slate-600">
                 Please enter your details to sign in.
               </p>
             </div>
@@ -106,7 +106,7 @@ const SignIn: React.FC = () => {
             <form onSubmit={formik.handleSubmit} className="space-y-6">
               {/* Email Input */}
               <div>
-                <label className="mb-2 block text-sm font-medium text-slate-300">
+                <label className="mb-2 block text-sm font-medium text-slate-700">
                   Email Address
                 </label>
                 <input
@@ -116,10 +116,10 @@ const SignIn: React.FC = () => {
                   value={formik.values.email}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 px-4 text-white placeholder-slate-500 outline-none transition-all focus:border-blue-500 focus:bg-white/10 focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-slate-300 bg-white py-3 px-4 text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
                 {formik.touched.email && formik.errors.email && (
-                  <p className="mt-2 text-xs text-red-400">
+                  <p className="mt-2 text-xs text-red-500">
                     {formik.errors.email}
                   </p>
                 )}
@@ -128,7 +128,7 @@ const SignIn: React.FC = () => {
               {/* Password Input */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-slate-300">
+                  <label className="block text-sm font-medium text-slate-700">
                     Password
                   </label>
                 </div>
@@ -139,10 +139,10 @@ const SignIn: React.FC = () => {
                   value={formik.values.password}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 px-4 text-white placeholder-slate-500 outline-none transition-all focus:border-blue-500 focus:bg-white/10 focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full rounded-xl border border-slate-300 bg-white py-3 px-4 text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
                 />
                 {formik.touched.password && formik.errors.password && (
-                  <p className="mt-2 text-xs text-red-400">
+                  <p className="mt-2 text-xs text-red-500">
                     {formik.errors.password}
                   </p>
                 )}
