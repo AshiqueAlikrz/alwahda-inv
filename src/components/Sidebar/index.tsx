@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import SidebarLinkGroup from './SidebarLinkGroup';
-import Logo from '../../images/logo/logo.svg';
+import Logo from '../../images/logo/aw-logo.svg';
 import {
   IoBuildOutline,
   IoDocumentTextOutline,
   IoClipboardOutline,
   IoGridOutline,
+  IoIdCardOutline,
   IoPeopleOutline,
   IoReceiptOutline,
 } from 'react-icons/io5';
@@ -80,9 +81,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       {/* <!-- SIDEBAR HEADER --> */}
       <div className="flex items-center justify-between gap-2 px-6 py-6">
         <NavLink to="/" className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-base font-bold text-white shadow-lg shadow-primary/30">
-            AW
-          </span>
+          <img src={Logo} alt="Al Wahda" className="h-10 w-10" />
           <span className="leading-tight">
             <span className="block text-base font-bold text-white">Al Wahda</span>
             <span className="block text-xs tracking-widest text-bodydark2">
@@ -158,6 +157,16 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
 
               <li>
                 <NavLink
+                  to="/cvs"
+                  className={navClass(/^\/cvs?(\/|$)/.test(pathname))}
+                >
+                  <IoIdCardOutline size={18} />
+                  CV Maker
+                </NavLink>
+              </li>
+
+              <li>
+                <NavLink
                   to="/report"
                   className={navClass(pathname.includes('report'))}
                 >
@@ -167,13 +176,17 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
               </li>
 
               <li>
-                <NavLink
-                  to="/proforma"
-                  className={navClass(pathname.includes('proforma'))}
+                <span
+                  aria-disabled="true"
+                  title="Coming soon"
+                  className="relative flex cursor-not-allowed items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-bodydark opacity-60"
                 >
                   <IoClipboardOutline size={18} />
                   Proforma
-                </NavLink>
+                  <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                    Soon
+                  </span>
+                </span>
               </li>
 
               <li>

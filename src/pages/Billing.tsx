@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { TinyColor } from '@ctrl/tinycolor';
 import {
   AutoComplete,
+  Checkbox,
   Modal,
   Button,
   ConfigProvider,
@@ -29,7 +30,6 @@ import {
   useLazyGetDailyReportsQuery,
 } from '../store/slice/reportSlice';
 import Loading from '../components/Loading';
-import CheckboxOne from '../components/Checkboxes/CheckboxOne';
 import {
   IoReceiptOutline,
   IoDocumentTextOutline,
@@ -72,6 +72,7 @@ const Billing = () => {
         tax: 0,
         total: 0,
         vat: false,
+        vatPaidByCompany: false,
       },
     ],
     subTotal: 0,
@@ -90,7 +91,6 @@ const Billing = () => {
   const [open, setOpen] = useState(false);
   // the same form saves either a tax invoice or a proforma invoice
   const [billMode, setBillMode] = useState<'invoice' | 'proforma'>('invoice');
-  const [vatFromMe, setVatFromMe] = useState(false);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [nameDropdownOpen, setNameDropdownOpen] = useState(false);
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -112,15 +112,16 @@ const Billing = () => {
     setOpen(false);
   };
 
-  const addRow = (index: any) => {
+  const addRow = () => {
     const newRow = {
-      id: index != Number ? 1 : index + 1,
+      id: formik.values.items.length + 1,
       description: '',
       quantity: 0,
-      fee: 0,
+      rate: 0,
       serviceCharge: 0,
       tax: 1,
       total: 0,
+      vatPaidByCompany: false,
     };
     formik.setFieldValue('items', [...formik.values.items, newRow]);
   };
@@ -183,7 +184,7 @@ const Billing = () => {
           if (billMode === 'proforma') {
             const proformaResponse = await createProforma({
               ...values,
-              vatPaidByCompany: vatFromMe,
+              vatPaidByCompany: allVatPaidByCompany,
               profit: totalProfit,
             }).unwrap();
             handleReset();
@@ -194,7 +195,7 @@ const Billing = () => {
 
           const response = await createInvoice({
             ...values,
-            vatPaidByCompany: vatFromMe,
+            vatPaidByCompany: allVatPaidByCompany,
             profit: totalProfit,
             companyId: user?.company._id,
           }).unwrap();
@@ -217,7 +218,6 @@ const Billing = () => {
                 address: '',
               },
             });
-            toast.success(response.message);
             <Alert
               message="Error Text"
               description="Error Description Error Description Error Description Error Description Error Description Error Description"
@@ -242,13 +242,14 @@ const Billing = () => {
 
   useEffect(() => {
     formik?.values?.items?.forEach((item: any, index: any) => {
-      const formattedTotal = vatFromMe
+      // ticked: the company pays this line's VAT out of its service charge; otherwise it is added for the client
+      const formattedTotal = item.vatPaidByCompany
         ? (item.quantity || 0) * (item.rate || 0) +
           parseFloat((item.serviceCharge || 0).toFixed(2))
         : (item.quantity || 0) * (item.rate || 0) +
           parseFloat(((item.serviceCharge || 0) + (item.tax || 0)).toFixed(2));
 
-      const tax = vatFromMe
+      const tax = item.vatPaidByCompany
         ? (item.serviceCharge * 5) / 105
         : (item.serviceCharge * 5) / 100;
       formik.setFieldValue(`items[${index}].total`, formattedTotal);
@@ -257,7 +258,7 @@ const Billing = () => {
       const isVatApplied = item.serviceCharge > 0;
       formik.setFieldValue(`items[${index}].vat`, isVatApplied);
     });
-  }, [formik.values.items, formik.setFieldValue, vatFromMe]);
+  }, [formik.values.items, formik.setFieldValue]);
 
   const subTotal = useMemo(() => {
     return formik.values.items.reduce(
@@ -279,13 +280,20 @@ const Billing = () => {
   }, [formik.values.items, formik.values]);
 
   const totalProfit = useMemo(() => {
-    const profit = formik.values.items.reduce(
-      (acc, item) => acc + Number(item.serviceCharge || 0),
+    const excludeVat = formik.values.items.reduce(
+      (acc, item) =>
+        acc +
+        Number(item.serviceCharge || 0) -
+        (item.vatPaidByCompany ? Number(item.tax || 0) : 0),
       0,
     );
-    const excludeVat = vatFromMe ? profit - Number(totalVat || 0) : profit;
     return excludeVat - Number(formik.values.discount || 0);
-  }, [formik.values.items, vatFromMe, totalVat, formik.values.discount]);
+  }, [formik.values.items, formik.values.discount]);
+
+  // kept on the bill itself for reports: true only when every line's VAT is paid by the company
+  const allVatPaidByCompany =
+    formik.values.items.length > 0 &&
+    formik.values.items.every((item) => item.vatPaidByCompany);
 
   const handleReset = () => {
     formik.resetForm({
@@ -377,12 +385,8 @@ const Billing = () => {
                 reports until you convert it to a tax invoice.
               </p>
             </div>
-            <Button
-              size="large"
-              icon={<HiOutlinePlus />}
-              onClick={() => showModal('proforma')}
-            >
-              New proforma
+            <Button size="large" disabled>
+              Coming soon
             </Button>
           </div>
         </Card>
@@ -570,22 +574,18 @@ const Billing = () => {
                 <div className="text-red-600">{formik.errors.invoice}</div>
               ) : null}
             </div>
-            <div className="mt-4 flex w-full items-center justify-end gap-2 text-sm font-medium text-black dark:text-white">
-              VAT applied by company{' '}
-              <CheckboxOne isChecked={vatFromMe} setIsChecked={setVatFromMe} />
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-black dark:text-white">
+                Items
+              </span>
+              <Button icon={<TiPlus size={18} />} onClick={addRow}>
+                Add Item
+              </Button>
             </div>
             <div className="my-4 overflow-x-auto rounded-xl border border-stroke dark:border-strokedark">
               <table className="min-w-max w-full table-auto ">
                 <thead>
                   <tr className="bg-gray-2 text-xs font-semibold uppercase tracking-wide text-body dark:bg-meta-4 dark:text-bodydark">
-                    <th className="py-3 px-6 text-right">
-                      {formik?.values?.items?.length < 1 && (
-                        <TiPlus
-                          className="text-green-600 text-xl hover:text-gray-800 cursor-pointer"
-                          onClick={addRow}
-                        />
-                      )}
-                    </th>
                     <th className="py-3 px-6 text-left"></th>
                     <th className="py-3 px-6 text-left">Serial.No</th>
                     <th className="py-3 px-6 text-center">Description</th>
@@ -594,6 +594,7 @@ const Billing = () => {
                     <th className="py-3 px-6 text-center">service chr.</th>
                     <th className="py-3 px-6 text-center">Tax</th>
                     <th className="py-3 px-6 text-center">Total</th>
+                    <th className="py-3 px-6 text-center"></th>
                   </tr>
                 </thead>
                 <tbody className="text-gray-600 text-sm font-light">
@@ -602,12 +603,6 @@ const Billing = () => {
                       key={index}
                       className="border-b border-stroke dark:border-strokedark"
                     >
-                      <td className="py-3 px-6 text-right">
-                        <TiPlus
-                          className="text-green-600 text-xl hover:text-gray-800 cursor-pointer"
-                          onClick={() => addRow(index)}
-                        />
-                      </td>
                       <td className="py-3 px-6 text-left whitespace-nowrap">
                         <MdDeleteOutline
                           className="text-red-600 text-xl hover:text-gray-800 cursor-pointer"
@@ -795,12 +790,26 @@ const Billing = () => {
                           ? formik?.values?.items[index]?.total
                           : '0.00'}
                       </td>
+
+                      {/* VAT by company */}
+                      <td className="py-3 px-6 text-center">
+                        <Checkbox
+                          title="VAT paid by company"
+                          checked={!!item.vatPaidByCompany}
+                          onChange={(e) =>
+                            formik.setFieldValue(
+                              `items[${index}].vatPaidByCompany`,
+                              e.target.checked,
+                            )
+                          }
+                        />
+                      </td>
                     </tr>
                   ))}
 
                   <tr className="bg-gray-2 text-sm text-body dark:bg-meta-4 dark:text-bodydark">
                     <td
-                      colSpan={8}
+                      colSpan={7}
                       className="py-3 px-6 text-right font-semibold"
                     >
                       Sub Total :
@@ -808,10 +817,11 @@ const Billing = () => {
                     <td className="py-3 px-6 text-right font-semibold">
                       {formik?.values?.subTotal?.toFixed(2)} AED
                     </td>
+                    <td />
                   </tr>
                   <tr className="bg-gray-2 text-sm text-body dark:bg-meta-4 dark:text-bodydark">
                     <td
-                      colSpan={8}
+                      colSpan={7}
                       className="py-3 px-6 text-right font-semibold"
                     >
                       Total VAT :
@@ -819,10 +829,11 @@ const Billing = () => {
                     <td className="py-3 px-6 text-right font-semibold">
                       {formik?.values?.totalVat?.toFixed(2)} AED
                     </td>
+                    <td />
                   </tr>
 
                   <tr className="bg-gray-2 text-sm text-body dark:bg-meta-4 dark:text-bodydark">
-                    <td colSpan={8} className="py-3 px-6 text-right font-bold">
+                    <td colSpan={7} className="py-3 px-6 text-right font-bold">
                       Discount
                     </td>
                     <td className="py-3 px-2 text-left flex justify-center">
@@ -836,15 +847,17 @@ const Billing = () => {
                       />
                       {/* {formik.errors.discount && formik.touched.discount ? <div className="text-red-600">{formik.errors.discount}</div> : null} */}
                     </td>
+                    <td />
                   </tr>
 
                   <tr className="bg-primary/5 text-base text-primary">
-                    <td colSpan={8} className="py-3 px-6 text-right font-bold">
+                    <td colSpan={7} className="py-3 px-6 text-right font-bold">
                       Grand Total :
                     </td>
                     <td className="py-3 px-6 text-right font-bold">
                       {formik?.values?.grandTotal?.toFixed(2)} AED
                     </td>
+                    <td />
                   </tr>
                 </tbody>
               </table>

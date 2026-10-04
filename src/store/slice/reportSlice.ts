@@ -12,7 +12,9 @@ export const apiSlice = createApi({
     'userItems',
     'Customer',
     'Quotations',
+    'QuotationTerms',
     'Proforma',
+    'CvTemplates',
   ],
   endpoints: (builder) => ({
     getUsers: builder.query<any, void>({
@@ -28,6 +30,7 @@ export const apiSlice = createApi({
       {
         client: string;
         date: string;
+        quoteNo?: string;
         items: { description: string; qty: number; price: number }[];
         terms: string[];
       }
@@ -39,6 +42,28 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Quotations'],
     }),
+    getQuotationTerms: builder.query<{ data: string[] }, void>({
+      query: () => '/reports/quotationterms',
+      providesTags: ['QuotationTerms'],
+    }),
+    addQuotationTerm: builder.mutation<{ data: string[] }, { term: string }>({
+      query: (body) => ({
+        url: '/reports/quotationterms',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['QuotationTerms'],
+    }),
+    deleteQuotationTerm: builder.mutation<{ data: string[] }, { term: string }>(
+      {
+        query: (body) => ({
+          url: '/reports/quotationterms',
+          method: 'DELETE',
+          body,
+        }),
+        invalidatesTags: ['QuotationTerms'],
+      },
+    ),
     getQuotations: builder.query<any, void>({
       query: () => '/reports/quotations',
       providesTags: ['Quotations'],
@@ -177,6 +202,33 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Service'],
     }),
+    getCvTemplates: builder.query<any, void>({
+      query: () => '/reports/cvtemplates',
+      providesTags: ['CvTemplates'],
+    }),
+    createCvTemplate: builder.mutation<any, any>({
+      query: (body) => ({
+        url: '/reports/cvtemplates',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['CvTemplates'],
+    }),
+    updateCvTemplate: builder.mutation<any, { templateId: string; body: any }>({
+      query: ({ templateId, body }) => ({
+        url: `/reports/cvtemplates/${templateId}`,
+        method: 'PUT',
+        body,
+      }),
+      invalidatesTags: ['CvTemplates'],
+    }),
+    deleteCvTemplate: builder.mutation<any, { templateId: string }>({
+      query: ({ templateId }) => ({
+        url: `/reports/cvtemplates/${templateId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['CvTemplates'],
+    }),
   }),
 });
 
@@ -186,6 +238,9 @@ export const {
   useGetInvoiceByIdQuery,
   useCreateQuotationMutation,
   useGetQuotationsQuery,
+  useGetQuotationTermsQuery,
+  useAddQuotationTermMutation,
+  useDeleteQuotationTermMutation,
   useGetQuotationByIdQuery,
   useCreateInvoiceMutation,
   useGetDailyReportsQuery,
@@ -207,6 +262,10 @@ export const {
   useConvertProformaMutation,
   useCreateCustomerMutation,
   useDeleteServiceMutation,
+  useGetCvTemplatesQuery,
+  useCreateCvTemplateMutation,
+  useUpdateCvTemplateMutation,
+  useDeleteCvTemplateMutation,
 } = apiSlice;
 
 // export const { setReportData } = todosSlice.actions;

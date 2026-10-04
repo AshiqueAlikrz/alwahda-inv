@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import DropdownMessage from './DropdownMessage';
 import DropdownNotification from './DropdownNotification';
 import DropdownUser from './DropdownUser';
-import LogoIcon from '../../images/logo/logo-icon.svg';
+import LogoIcon from '../../images/logo/aw-logo.svg';
 
 const pageMeta = (pathname: string) => {
   if (pathname === '/')
@@ -99,9 +99,7 @@ const Header = (props: {
           {/* <!-- Hamburger Toggle BTN --> */}
 
           <Link className="block flex-shrink-0 lg:hidden" to="/">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white">
-              AW
-            </span>
+            <img src={LogoIcon} alt="Al Wahda" className="h-9 w-9" />
           </Link>
         </div>
 

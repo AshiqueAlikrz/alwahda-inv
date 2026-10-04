@@ -33,20 +33,32 @@ const InvoiceData = ({
   const [sendInvoiceEmail, { isLoading: isSending }] =
     useSendInvoiceEmailMutation();
 
-  // Renders the invoice card to a one-page A4 PDF. The email copy uses JPEG at
-  // a lower scale so the upload stays well under the server's request limit.
+  // Renders the invoice card to an A4 PDF, flowing onto extra pages when the
+  // item list is long. The email copy uses JPEG at a lower scale so the upload
+  // stays well under the server's request limit.
   const buildPdf = async ({ compact = false } = {}) => {
     const element = invoiceRef.current;
+    const scale = compact ? 2 : 3; // 🔥 Higher scale = sharper text
+    // bottom edge of every table row, so a page never cuts through a row
+    const rowEnds: number[] = [];
 
     const canvas = await html2canvas(element, {
-      scale: compact ? 2 : 3, // 🔥 Higher scale = sharper text
+      scale,
       useCORS: true,
       backgroundColor: '#ffffff',
+      // Render at a fixed desktop width so the PDF looks the same when it is
+      // downloaded from a phone or a narrow window.
+      windowWidth: 1280,
+      onclone: (_doc, clone) => {
+        clone.style.width = '896px';
+        clone.style.maxWidth = 'none';
+        clone.style.boxShadow = 'none';
+        const top = clone.getBoundingClientRect().top;
+        clone.querySelectorAll('tr').forEach((row) => {
+          rowEnds.push((row.getBoundingClientRect().bottom - top) * scale);
+        });
+      },
     });
-
-    const imgData = compact
-      ? canvas.toDataURL('image/jpeg', 0.85)
-      : canvas.toDataURL('image/png'); // Lossless
 
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -55,18 +67,45 @@ const InvoiceData = ({
     });
 
     const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+    const pxPerPt = canvas.width / pdfWidth;
+    const margin = 24; // pt, kept clear where the invoice breaks across pages
 
-    pdf.addImage(
-      imgData,
-      compact ? 'JPEG' : 'PNG',
-      0,
-      0,
-      pdfWidth,
-      pdfHeight,
-      undefined,
-      compact ? 'FAST' : 'SLOW', // Best quality rendering
-    );
+    let y = 0;
+    for (let page = 0; y < canvas.height; page++) {
+      const top = page === 0 ? 0 : margin;
+      let end = canvas.height;
+      if (end - y > (pdfHeight - top) * pxPerPt) {
+        const limit = y + (pdfHeight - top - margin) * pxPerPt;
+        const fitting = rowEnds.filter(
+          (rowEnd) => rowEnd > y && rowEnd <= limit,
+        );
+        end = Math.floor(fitting.length ? Math.max(...fitting) : limit);
+      }
+
+      const slice = document.createElement('canvas');
+      slice.width = canvas.width;
+      slice.height = end - y;
+      const ctx = slice.getContext('2d')!;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, slice.width, slice.height);
+      ctx.drawImage(canvas, 0, -y);
+
+      if (page > 0) pdf.addPage();
+      pdf.addImage(
+        compact
+          ? slice.toDataURL('image/jpeg', 0.85)
+          : slice.toDataURL('image/png'), // Lossless
+        compact ? 'JPEG' : 'PNG',
+        0,
+        top,
+        pdfWidth,
+        slice.height / pxPerPt,
+        undefined,
+        compact ? 'FAST' : 'SLOW', // Best quality rendering
+      );
+      y = end;
+    }
 
     return pdf;
   };
@@ -161,19 +200,58 @@ const InvoiceData = ({
           <Loading />
         </div>
       ) : (
-        <div className="m-8 h-auto">
+        <div className="invoice-page m-2 h-auto sm:m-8">
           <style>
             {`
           @media print {
-            .print-pdf,.download-pdf{
-              display: none;
+            /* zero page margin drops the browser's date, title, URL and page number */
+            @page {
+              size: A4;
+              margin: 0;
+            }
+            .print-pdf,.download-pdf,.Toastify,aside{
+              display: none !important;
+            }
+            main > div {
+              padding: 0 !important;
+            }
+            .invoice-page {
+              margin: 0 !important;
+              padding: 10mm;
+            }
+            .invoice-card {
+              max-width: none !important;
+              padding: 0 !important;
+              box-shadow: none !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .invoice-table-wrap {
+              overflow: visible !important;
+            }
+            /* long invoices flow onto a second page without splitting a row */
+            /* browsers repeat a tfoot on every page; print the totals once, at the end */
+            .invoice-card tfoot {
+              display: table-row-group;
+            }
+            .invoice-card tr {
+              break-inside: avoid;
+            }
+            /* the app shell is one screen tall and would clip page two */
+            html,body,.h-screen,.overflow-hidden,.overflow-y-auto {
+              height: auto !important;
+              overflow: visible !important;
+            }
+            .invoice-card th,.invoice-card td {
+              padding-left: 6px !important;
+              padding-right: 6px !important;
             }
           }
         `}
           </style>
           <div
             ref={invoiceRef}
-            className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg "
+            className="invoice-card max-w-4xl mx-auto bg-white p-3 sm:p-6 rounded-lg shadow-lg "
           >
             <div className="flex w-full bg-black">
               <img src={alwahdaText} className="w-full h-full object-cover" />
@@ -254,134 +332,136 @@ const InvoiceData = ({
 
             <div className="mb-6"></div>
 
-            <table className="min-w-full bg-white border">
-              <thead>
-                <tr>
-                  <th className="py-2 px-4 border ">#</th>
-                  <th className="py-2 px-10 border">Description</th>
-                  <th className="py-2 px-4 border ">Quantity</th>
-                  <th className="py-2 px-4 border">Unit Price</th>
-                  {showTaxService && (
-                    <th className="py-2 px-4 border">Service Chr. </th>
-                  )}
-                  {showTaxService && (
-                    <th className="py-2 px-4 border ">Tax </th>
-                  )}
-                  <th className="py-2 px-4 border">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data?.data?.items?.map((item: any, index: any) => (
-                  <tr key={index}>
-                    <td className="py-2 px-4 text-center font-medium border  text-nowrap">
-                      {index + 1}
-                    </td>
-                    <td className="py-2 px-4 text-center font-medium border  text-nowrap">
-                      {item.description.name}
-                    </td>
-                    <td className="py-2 px-4 text-center font-medium border text-nowrap">
-                      {item.quantity}
-                    </td>
-                    <td className="py-2 px-4 text-center   font-medium border  text-nowrap">
-                      {item?.rate?.toFixed(2)}
-                    </td>
+            <div className="invoice-table-wrap overflow-x-auto">
+              <table className="min-w-full bg-white border">
+                <thead>
+                  <tr>
+                    <th className="py-2 px-4 border ">#</th>
+                    <th className="py-2 px-10 border">Description</th>
+                    <th className="py-2 px-4 border ">Quantity</th>
+                    <th className="py-2 px-4 border">Unit Price</th>
+                    {showTaxService && (
+                      <th className="py-2 px-4 border">Service Chr. </th>
+                    )}
+                    {showTaxService && (
+                      <th className="py-2 px-4 border ">Tax </th>
+                    )}
+                    <th className="py-2 px-4 border">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.data?.items?.map((item: any, index: any) => (
+                    <tr key={index}>
+                      <td className="py-2 px-4 text-center font-medium border  text-nowrap">
+                        {index + 1}
+                      </td>
+                      <td className="py-2 px-4 text-center font-medium border  text-nowrap">
+                        {item.description.name}
+                      </td>
+                      <td className="py-2 px-4 text-center font-medium border text-nowrap">
+                        {item.quantity}
+                      </td>
+                      <td className="py-2 px-4 text-center   font-medium border  text-nowrap">
+                        {item?.rate?.toFixed(2)}
+                      </td>
 
+                      {showTaxService && (
+                        <>
+                          <td className="py-2 px-4 text-center font-medium border text-nowrap">
+                            {item.serviceCharge?.toFixed(2)}
+                          </td>
+
+                          <td className="py-2 px-4 text-center font-medium border text-nowrap">
+                            {item.tax?.toFixed(2)}
+                          </td>
+                        </>
+                      )}
+                      <td className="py-2 px-4 text-center  font-medium border text-nowrap">
+                        {item?.total?.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                  <tr>
+                    <td className="py-4 px-4 border "></td>
+                    <td className="py-4 px-4 border "></td>
+                    <td className="py-4 px-4 border "></td>
+                    <td className="py-4 px-4 border "></td>
+                    <td className="py-4 px-4 border "></td>
                     {showTaxService && (
                       <>
-                        <td className="py-2 px-4 text-center font-medium border text-nowrap">
-                          {item.serviceCharge?.toFixed(2)}
-                        </td>
-
-                        <td className="py-2 px-4 text-center font-medium border text-nowrap">
-                          {item.tax?.toFixed(2)}
-                        </td>
+                        <td className="py-4 px-4 border"></td>
+                        <td className="py-4 px-4 border"></td>
                       </>
                     )}
-                    <td className="py-2 px-4 text-center  font-medium border text-nowrap">
-                      {item?.total?.toFixed(2)}
-                    </td>
                   </tr>
-                ))}
-                <tr>
-                  <td className="py-4 px-4 border "></td>
-                  <td className="py-4 px-4 border "></td>
-                  <td className="py-4 px-4 border "></td>
-                  <td className="py-4 px-4 border "></td>
-                  <td className="py-4 px-4 border "></td>
-                  {showTaxService && (
-                    <>
-                      <td className="py-4 px-4 border"></td>
-                      <td className="py-4 px-4 border"></td>
-                    </>
-                  )}
-                </tr>
-                <tr>
-                  <td className="py-4 px-4 border"></td>
-                  <td className="py-4 px-4 border"></td>
-                  <td className="py-4 px-4 border"></td>
-                  <td className="py-4 px-4 border"></td>
-                  <td className="py-4 px-4 border"></td>
-                  {showTaxService && (
-                    <>
-                      <td className="py-4 px-4 border"></td>
-                      <td className="py-4 px-4 border"></td>
-                    </>
-                  )}
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td
-                    colSpan={`${showTaxService ? '6' : '4'}`}
-                    className="py-2 px-4 text-right font-bold border"
-                  >
-                    VAT
-                  </td>
-                  <td className="py-2  px-4 font-bold text-nowrap">
-                    AED {data?.data?.totalVat?.toFixed(2) || 0}{' '}
-                  </td>
-                </tr>
-                {data?.data?.discount > 0 && (
                   <tr>
-                    <td
-                      colSpan="6"
-                      className="py-2 px-4 text-right font-semibold border"
-                    >
-                      Sub total
-                      <span className="text-xs"> (Including 5% VAT)</span>
-                    </td>
-                    <td className="py-2 px-4 font-semibold border text-nowrap">
-                      AED {data?.data?.subTotal?.toFixed(2)}{' '}
-                    </td>
+                    <td className="py-4 px-4 border"></td>
+                    <td className="py-4 px-4 border"></td>
+                    <td className="py-4 px-4 border"></td>
+                    <td className="py-4 px-4 border"></td>
+                    <td className="py-4 px-4 border"></td>
+                    {showTaxService && (
+                      <>
+                        <td className="py-4 px-4 border"></td>
+                        <td className="py-4 px-4 border"></td>
+                      </>
+                    )}
                   </tr>
-                )}
-
-                {data?.data?.discount > 0 && (
+                </tbody>
+                <tfoot>
                   <tr>
                     <td
                       colSpan={`${showTaxService ? '6' : '4'}`}
-                      className="py-2 px-4 text-right font-semibold border"
+                      className="py-2 px-4 text-right font-bold border"
                     >
-                      Discount
+                      VAT
                     </td>
-                    <td className="py-2 px-4 font-semibold border text-nowrap">
-                      AED {data?.data?.discount?.toFixed(2)}{' '}
+                    <td className="py-2  px-4 font-bold border text-nowrap">
+                      AED {data?.data?.totalVat?.toFixed(2) || 0}{' '}
                     </td>
                   </tr>
-                )}
-                <tr>
-                  <td
-                    colSpan={`${showTaxService ? '6' : '4'}`}
-                    className="py-2 px-4 text-right font-bold border"
-                  >
-                    Total
-                  </td>
-                  <td className="py-2  px-4 font-bold border text-nowrap">
-                    AED {data?.data?.grandTotal?.toFixed(2)}{' '}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+                  {data?.data?.discount > 0 && (
+                    <tr>
+                      <td
+                        colSpan={`${showTaxService ? '6' : '4'}`}
+                        className="py-2 px-4 text-right font-semibold border"
+                      >
+                        Sub total
+                        <span className="text-xs"> (Including 5% VAT)</span>
+                      </td>
+                      <td className="py-2 px-4 font-semibold border text-nowrap">
+                        AED {data?.data?.subTotal?.toFixed(2)}{' '}
+                      </td>
+                    </tr>
+                  )}
+
+                  {data?.data?.discount > 0 && (
+                    <tr>
+                      <td
+                        colSpan={`${showTaxService ? '6' : '4'}`}
+                        className="py-2 px-4 text-right font-semibold border"
+                      >
+                        Discount
+                      </td>
+                      <td className="py-2 px-4 font-semibold border text-nowrap">
+                        AED {data?.data?.discount?.toFixed(2)}{' '}
+                      </td>
+                    </tr>
+                  )}
+                  <tr>
+                    <td
+                      colSpan={`${showTaxService ? '6' : '4'}`}
+                      className="py-2 px-4 text-right font-bold border"
+                    >
+                      Total
+                    </td>
+                    <td className="py-2  px-4 font-bold border text-nowrap">
+                      AED {data?.data?.grandTotal?.toFixed(2)}{' '}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
 
             {isProforma && (
               <p className="mb-6 mt-3 text-sm text-black">
@@ -390,12 +470,12 @@ const InvoiceData = ({
               </p>
             )}
 
-            <div className="font-sans flex justify-between items-center h-8 p-3 bg-blue-800">
-              <p className="text-white font-semibold flex mb-3">
+            <div className="font-sans flex justify-between items-center px-3 py-2 bg-blue-800">
+              <p className="text-white font-semibold flex leading-none">
                 {/* <GiWorld className="m-1 size-4" /> */}
                 www.alwahdaonline.com
               </p>
-              <p className="flex text-white font-semibold mb-3">
+              <p className="flex text-white font-semibold leading-none">
                 {/* <AiOutlineMail className="m-1 size-4" />  */}
                 alwahda02@gmail.com
               </p>

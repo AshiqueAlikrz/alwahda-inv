@@ -5,7 +5,7 @@ import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import { useSignInMutation } from '../../store/slice/authSlice';
 import LogoDark from '../../images/logo/logo-dark.svg';
-import Logo from '../../images/logo/logo.svg';
+import Logo from '../../images/logo/aw-logo.svg';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../../store/state/userState';
 
@@ -65,9 +65,7 @@ const SignIn: React.FC = () => {
         <div className="hidden w-1/2 flex-col justify-between p-12 xl:flex border-r border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50/40">
           <div>
             <div className="flex items-center gap-2 mb-8">
-              <div className="h-10 w-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/40">
-                <span className="text-white font-bold text-xl">K</span>
-              </div>
+              <img src={Logo} alt="Al Wahda" className="h-10 w-10" />
               <span className="text-2xl font-bold tracking-tight text-slate-900">
                 KRZ <span className="text-blue-600">ERP</span>
               </span>

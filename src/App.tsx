@@ -30,6 +30,8 @@ import Proforma from './pages/Proforma';
 import Quotations from './pages/Quotation';
 import NewQuotation from './pages/Quotation/NewQuotation';
 import QuotationView from './pages/Quotation/QuotationView';
+import CvTemplates from './pages/Cv';
+import CvEditor from './pages/Cv/CvEditor';
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -118,6 +120,26 @@ function App() {
             <>
               <PageTitle title="Quotation" />
               <QuotationView />
+            </>
+          }
+        />
+
+        <Route
+          path="/cvs"
+          element={
+            <>
+              <PageTitle title="CV Maker" />
+              <CvTemplates />
+            </>
+          }
+        />
+
+        <Route
+          path="/cvs/new"
+          element={
+            <>
+              <PageTitle title="New CV" />
+              <CvEditor />
             </>
           }
         />

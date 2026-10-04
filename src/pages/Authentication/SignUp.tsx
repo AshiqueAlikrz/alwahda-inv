@@ -8,6 +8,7 @@ import { Button, ConfigProvider, Divider, Select } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useGetAllCompaniesQuery } from '../../store/slice/companySlice';
 import AddCompanyModal from '../../components/AddCompanyModal';
+import Logo from '../../images/logo/aw-logo.svg';
 
 const inputClass =
   'w-full rounded-xl border border-slate-300 bg-white py-3 px-4 text-slate-900 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
@@ -96,9 +97,7 @@ const SignUp: React.FC = () => {
           <div className="hidden w-1/2 flex-col justify-between border-r border-slate-100 bg-gradient-to-br from-blue-50 to-indigo-50/40 p-12 xl:flex">
             <div>
               <div className="mb-8 flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-lg shadow-blue-600/40">
-                  <span className="text-xl font-bold text-white">K</span>
-                </div>
+                <img src={Logo} alt="Al Wahda" className="h-10 w-10" />
                 <span className="text-2xl font-bold tracking-tight text-slate-900">
                   KRZ <span className="text-blue-600">ERP</span>
                 </span>

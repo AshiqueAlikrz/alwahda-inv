@@ -32,6 +32,7 @@ import PaidPill from '../../components/ui/PaidPill';
 import CsvButton from '../../components/ui/CsvButton';
 import { CsvColumn, csvFilename } from '../../utils/csv';
 import { formatMoney } from '../../utils/money';
+import { vatPaidByLabel } from '../../utils/vat';
 
 interface Item {
   id: number;
@@ -79,7 +80,7 @@ const invoiceCsvColumns: CsvColumn<any>[] = [
   { header: 'Status', value: (invoice) => (invoice.paid ? 'Paid' : 'Unpaid') },
   {
     header: 'VAT Paid By',
-    value: (invoice) => (invoice.vatPaidByCompany ? 'Company' : 'Customer'),
+    value: (invoice) => vatPaidByLabel(invoice),
   },
 ];
 

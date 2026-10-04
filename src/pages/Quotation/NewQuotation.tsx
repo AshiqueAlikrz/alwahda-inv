@@ -1,21 +1,20 @@
 import { useMemo, useRef, useState } from 'react';
-import { Button, Input, InputNumber } from 'antd';
+import { AutoComplete, Button, Checkbox, Input, InputNumber } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import moment from 'moment';
 import { IoAdd, IoTrashOutline } from 'react-icons/io5';
 import Card from '../../components/ui/Card';
-import { useCreateQuotationMutation } from '../../store/slice/reportSlice';
+import {
+  useAddQuotationTermMutation,
+  useCreateQuotationMutation,
+  useDeleteQuotationTermMutation,
+  useGetAllservicesQuery,
+  useGetQuotationTermsQuery,
+} from '../../store/slice/reportSlice';
 import { formatMoney } from '../../utils/money';
 
 const VAT_PERCENT = 5;
-
-const DEFAULT_TERMS = [
-  'Payment should be made within 7 days.',
-  'All prices are in AED and exclude 5% VAT.',
-  'Quotation valid for 15 days only.',
-  'Delivery timeline will be confirmed after approval.',
-];
 
 interface Row {
   key: number;
@@ -31,13 +30,58 @@ const NewQuotation = () => {
   const [createQuotation, { isLoading: isSaving }] =
     useCreateQuotationMutation();
 
+  // saved services are offered as suggestions; the description stays free text
+  const { data: services } = useGetAllservicesQuery();
+  const serviceOptions = useMemo(
+    () =>
+      (services?.data || []).map((service: any) => ({
+        key: service._id,
+        value: service.name,
+        price: service.price,
+      })),
+    [services],
+  );
+
   const nextKey = useRef(2);
   const [client, setClient] = useState('');
   const [date, setDate] = useState(moment().format('YYYY-MM-DD'));
+  // left blank, the server assigns the next number in sequence
+  const [quoteNo, setQuoteNo] = useState('');
   const [rows, setRows] = useState<Row[]>([
     { key: 1, description: '', qty: 1, price: null },
   ]);
-  const [termsText, setTermsText] = useState(DEFAULT_TERMS.join('\n'));
+  // the company's saved terms; each one is printed unless it is unticked here
+  const { data: termsData, isLoading: termsLoading } =
+    useGetQuotationTermsQuery();
+  const savedTerms = termsData?.data || [];
+  const [addTerm, { isLoading: isAddingTerm }] = useAddQuotationTermMutation();
+  const [deleteTerm] = useDeleteQuotationTermMutation();
+  const [uncheckedTerms, setUncheckedTerms] = useState<string[]>([]);
+  const [newTerm, setNewTerm] = useState('');
+
+  const toggleTerm = (term: string, checked: boolean) =>
+    setUncheckedTerms((prev) =>
+      checked ? prev.filter((item) => item !== term) : [...prev, term],
+    );
+
+  const saveNewTerm = async () => {
+    const term = newTerm.trim();
+    if (!term) return;
+    try {
+      await addTerm({ term }).unwrap();
+      setNewTerm('');
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to add the term');
+    }
+  };
+
+  const removeTerm = async (term: string) => {
+    try {
+      await deleteTerm({ term }).unwrap();
+    } catch (err: any) {
+      toast.error(err?.data?.message || 'Failed to remove the term');
+    }
+  };
   // after a failed save attempt, highlight what is missing
   const [submitted, setSubmitted] = useState(false);
 
@@ -86,15 +130,13 @@ const NewQuotation = () => {
       const response = await createQuotation({
         client: client.trim(),
         date,
+        quoteNo: quoteNo.trim(),
         items: rows.map((row) => ({
           description: row.description.trim(),
           qty: row.qty as number,
           price: row.price as number,
         })),
-        terms: termsText
-          .split('\n')
-          .map((term) => term.trim())
-          .filter(Boolean),
+        terms: savedTerms.filter((term) => !uncheckedTerms.includes(term)),
       }).unwrap();
       toast.success(`Quotation ${response.data.quoteNo} created`);
       navigate(`/quotation/${response.data._id}`);
@@ -135,9 +177,13 @@ const NewQuotation = () => {
             <label className="mb-1.5 block text-sm font-medium text-black dark:text-white">
               Quotation no.
             </label>
-            <div className="flex h-10 items-center rounded-lg border border-dashed border-stroke px-3 text-sm text-body dark:border-strokedark dark:text-bodydark">
-              Assigned when you save
-            </div>
+            <Input
+              size="large"
+              value={quoteNo}
+              maxLength={30}
+              placeholder="Automatic if left blank"
+              onChange={(e) => setQuoteNo(e.target.value)}
+            />
           </div>
         </div>
       </Card>
@@ -166,14 +212,27 @@ const NewQuotation = () => {
               className="grid grid-cols-12 items-start gap-3 border-t border-stroke pt-3 first:border-0 first:pt-0 dark:border-strokedark md:border-0 md:pt-0"
             >
               <div className="col-span-12 md:col-span-6">
-                <Input
+                <AutoComplete
                   size="large"
+                  style={{ width: '100%' }}
                   value={row.description}
                   maxLength={300}
                   placeholder={`Item ${index + 1} description`}
                   status={submitted && !row.description.trim() ? 'error' : ''}
-                  onChange={(e) =>
-                    updateRow(row.key, { description: e.target.value })
+                  options={serviceOptions}
+                  filterOption={(input, option) =>
+                    String(option?.value ?? '')
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
+                  onChange={(value) =>
+                    updateRow(row.key, { description: value })
+                  }
+                  onSelect={(value, option: any) =>
+                    updateRow(row.key, {
+                      description: value,
+                      price: option.price ?? row.price,
+                    })
                   }
                 />
               </div>
@@ -226,13 +285,56 @@ const NewQuotation = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
         <Card
           title="Terms & conditions"
-          subtitle="One per line, printed on the quotation"
+          subtitle="Ticked terms are printed on the quotation"
         >
-          <Input.TextArea
-            rows={6}
-            value={termsText}
-            onChange={(e) => setTermsText(e.target.value)}
-          />
+          <div className="flex flex-col gap-1">
+            {savedTerms.map((term) => (
+              <div
+                key={term}
+                className="flex items-start justify-between gap-3 rounded-lg px-2 py-1.5 hover:bg-gray-2 dark:hover:bg-meta-4"
+              >
+                <Checkbox
+                  checked={!uncheckedTerms.includes(term)}
+                  onChange={(e) => toggleTerm(term, e.target.checked)}
+                >
+                  {term}
+                </Checkbox>
+                <Button
+                  size="small"
+                  danger
+                  type="text"
+                  aria-label={`Delete term: ${term}`}
+                  icon={<IoTrashOutline size={16} />}
+                  onClick={() => removeTerm(term)}
+                />
+              </div>
+            ))}
+            {!termsLoading && savedTerms.length === 0 && (
+              <p className="px-2 py-1.5 text-sm text-body dark:text-bodydark">
+                No saved terms yet. Add one below.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 flex gap-3">
+            <Input
+              size="large"
+              value={newTerm}
+              maxLength={300}
+              placeholder="Write a new term"
+              onChange={(e) => setNewTerm(e.target.value)}
+              onPressEnter={saveNewTerm}
+            />
+            <Button
+              size="large"
+              icon={<IoAdd size={18} />}
+              loading={isAddingTerm}
+              disabled={!newTerm.trim()}
+              onClick={saveNewTerm}
+            >
+              Add term
+            </Button>
+          </div>
         </Card>
 
         <Card>

@@ -25,6 +25,7 @@ import { IoArrowBack, IoPrintOutline } from 'react-icons/io5';
 import Card from '../components/ui/Card';
 import PaidPill from '../components/ui/PaidPill';
 import { formatMoney } from '../utils/money';
+import { vatPaidByLabel } from '../utils/vat';
 
 interface Item {
   id: string;
@@ -153,7 +154,7 @@ const InvoiceDetail = () => {
   const navigate = useNavigate();
   const invoice = (invoiceData as any)?.data;
   const createdByName = invoice?.createdBy?.name;
-  const vatPaidByCompany = invoice?.vatPaidByCompany;
+  const vatPaidBy = invoice ? vatPaidByLabel(invoice) : '-';
 
   const formattedData = data
     ? data.data.map((items: any, index: number) => {
@@ -249,13 +250,7 @@ const InvoiceDetail = () => {
               </div>
               <div className="flex">
                 <span className="font-medium">VAT Paid By:&nbsp;</span>
-                <span>
-                  {vatPaidByCompany === undefined
-                    ? '-'
-                    : vatPaidByCompany
-                    ? 'Company'
-                    : 'Customer'}
-                </span>
+                <span>{vatPaidBy}</span>
               </div>
             </div>
             <Button
